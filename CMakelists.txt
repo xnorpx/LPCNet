@@ -1,0 +1,23 @@
+# download models from https://media.xiph.org/lpcnet/data/ and extract in src 
+# quick hack to compile demo for Windows
+
+cmake_minimum_required(VERSION 3.1)
+project(LPCNet LANGUAGES C)
+
+add_library(lpcnet
+            OBJECT
+src/celt_lpc.c
+src/common.c
+src/freq.c
+src/kiss_fft.c
+src/lpcnet.c
+src/lpcnet_dec.c
+src/lpcnet_enc.c
+src/nnet.c
+src/pitch.c
+src/nnet_data.c
+src/ceps_codebooks.c)
+
+target_include_directories(lpcnet PUBLIC include src)
+add_executable(lpcnet_demo src/lpcnet_demo.c)
+target_link_libraries(lpcnet_demo lpcnet)
