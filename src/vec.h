@@ -103,8 +103,10 @@ static void sgemv_accum16(float *out, const float *weights, int rows, int cols, 
    {
       for (j=0;j<cols;j++)
       {
-         const float * restrict w;
-         float * restrict y;
+         //const float * restrict w;
+         const float * __restrict w;
+         //float * restrict y;
+         float * __restrict y;
          float xj;
          w = &weights[j*col_stride + i];
          xj = x[j];
@@ -138,7 +140,8 @@ static void sparse_sgemv_accum16(float *out, const float *w, int rows, const int
       cols = *idx++;
       for (j=0;j<cols;j++)
       {
-         float * restrict y;
+         //float * restrict y;
+         float * __restrict y;
          float xj;
          xj = x[*idx++];
          y = &out[i];

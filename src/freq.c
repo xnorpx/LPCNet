@@ -28,6 +28,8 @@
 #include "config.h"
 #endif
 
+#define _USE_MATH_DEFINES
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

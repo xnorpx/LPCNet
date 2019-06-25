@@ -46,7 +46,7 @@
 #elif __ARM_NEON__
 #include "vec_neon.h"
 #else
-#warning Compiling without any vectorization. This code will be very slow
+//#warning Compiling without any vectorization. This code will be very slow
 #include "vec.h"
 #endif
 
