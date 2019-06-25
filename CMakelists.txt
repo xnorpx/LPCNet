@@ -1,8 +1,20 @@
-# download models from https://media.xiph.org/lpcnet/data/ and extract in src 
-# quick hack to compile demo for Windows
-
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.11)
 project(LPCNet LANGUAGES C)
+
+set(model_url https://media.xiph.org/lpcnet/data/lpcnet_data-681d98c.tar.gz) # TODO: no hardcode?
+set(model_source_dir "${CMAKE_CURRENT_BINARY_DIR}/models/")
+
+include(FetchContent)
+FetchContent_Declare(
+  lpcnet_data
+  URL ${model_url}
+  SOURCE_DIR "${model_source_dir}"
+)
+
+FetchContent_GetProperties(lpcnet_data)
+if(NOT lpcnet_data_POPULATED)
+  FetchContent_Populate(lpcnet_data)
+endif()
 
 add_library(lpcnet
             OBJECT
@@ -15,9 +27,10 @@ src/lpcnet_dec.c
 src/lpcnet_enc.c
 src/nnet.c
 src/pitch.c
-src/nnet_data.c
-src/ceps_codebooks.c)
+${model_source_dir}/nnet_data.c
+${model_source_dir}/ceps_codebooks.c)
 
-target_include_directories(lpcnet PUBLIC include src)
+target_include_directories(lpcnet PUBLIC include src ${model_source_dir})
+#add_dependencies(lpcnet lpcnet_data)
 add_executable(lpcnet_demo src/lpcnet_demo.c)
 target_link_libraries(lpcnet_demo lpcnet)
