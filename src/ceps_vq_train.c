@@ -1,5 +1,9 @@
 
+#ifndef _MSC_VER
 #include <valgrind/memcheck.h>
+#else
+#define VALGRIND_CHECK_MEM_IS_DEFINED
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>

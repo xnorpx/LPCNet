@@ -1,42 +1,66 @@
 cmake_minimum_required(VERSION 3.11)
 project(LPCNet LANGUAGES C)
 
-set(model_url https://media.xiph.org/lpcnet/data/lpcnet_data-681d98c.tar.gz) # TODO: no hardcode?
+if(NOT WIN32)
+  message(FATAL_ERROR Only
+                      tested
+                      on
+                      windows)
+endif()
+
+set(model_url https://media.xiph.org/lpcnet/data/lpcnet_data-681d98c.tar.gz)
+# TODO: no hardcode?
 set(model_source_dir "${CMAKE_CURRENT_BINARY_DIR}/models/")
 
 include(FetchContent)
-FetchContent_Declare(
-  lpcnet_data
-  URL ${model_url}
-  SOURCE_DIR "${model_source_dir}"
-)
+fetchcontent_declare(lpcnet_data
+                     URL
+                     ${model_url}
+                     SOURCE_DIR
+                     "${model_source_dir}")
 
-FetchContent_GetProperties(lpcnet_data)
+fetchcontent_getproperties(lpcnet_data)
 if(NOT lpcnet_data_POPULATED)
-  FetchContent_Populate(lpcnet_data)
+  fetchcontent_populate(lpcnet_data)
 endif()
 
-add_library(lpcnet
+add_library(lpcnet_object
             OBJECT
-src/celt_lpc.c
-src/common.c
-src/freq.c
-src/kiss_fft.c
-src/lpcnet.c
-src/lpcnet_dec.c
-src/lpcnet_enc.c
-src/nnet.c
-src/pitch.c
-${model_source_dir}/nnet_data.c
-${model_source_dir}/ceps_codebooks.c)
+            src/celt_lpc.c
+            src/common.c
+            src/freq.c
+            src/kiss_fft.c
+            src/lpcnet.c
+            src/lpcnet_dec.c
+            src/lpcnet_enc.c
+            src/nnet.c
+            src/pitch.c
+            ${model_source_dir}/nnet_data.c
+            ${model_source_dir}/ceps_codebooks.c)
 
-if (WIN32)
+target_include_directories(lpcnet_object PUBLIC include src ${model_source_dir})
+
+if(WIN32)
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
   add_definitions(-D__AVX__)
   add_definitions(-D__AVX2__)
   add_definitions(/arch:AVX2)
 endif()
 
-target_include_directories(lpcnet PUBLIC include src ${model_source_dir})
+if(BUILD_TESTING)
+  add_executable(test_vec src/test_vec.c)
+  target_link_libraries(test_vec lpcnet_object)
+
+  add_executable(test_lpcnet src/test_lpcnet.c)
+  target_link_libraries(test_lpcnet lpcnet_object)
+endif()
+
+add_executable(dump_data src/dump_data.c)
+target_link_libraries(dump_data lpcnet_object)
+
+# fix PI def and variable array
+#add_executable(ceps_vq_train src/ceps_vq_train)
+#target_link_libraries(ceps_vq_train lpcnet_object)
+
 add_executable(lpcnet_demo src/lpcnet_demo.c)
-target_link_libraries(lpcnet_demo lpcnet)
+target_link_libraries(lpcnet_demo lpcnet_object)
