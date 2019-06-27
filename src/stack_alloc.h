@@ -35,6 +35,7 @@
 #define STACK_ALLOC_H
 
 #include "opus_types.h"
+#include "common.h"
 //#include "opus_defines.h"
 
 #if (!defined (VAR_ARRAYS) && !defined (USE_ALLOCA) && !defined (NONTHREADSAFE_PSEUDOSTACK))
