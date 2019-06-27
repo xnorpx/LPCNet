@@ -1,10 +1,9 @@
 from keras import backend as K
-from keras.engine.topology import Layer
-from keras.layers import activations, initializers, regularizers, constraints, InputSpec, Conv1D, Dense
-import numpy as np
+from keras.layers import activations, Conv1D, Dense
+
 
 class GatedConv(Conv1D):
-    
+
     def __init__(self, filters,
                  kernel_size,
                  dilation_rate=1,
@@ -21,7 +20,7 @@ class GatedConv(Conv1D):
                  **kwargs):
 
         super(GatedConv, self).__init__(
-            filters=2*filters,
+            filters=2 * filters,
             kernel_size=kernel_size,
             strides=1,
             padding='valid',
@@ -37,11 +36,11 @@ class GatedConv(Conv1D):
             kernel_constraint=kernel_constraint,
             bias_constraint=bias_constraint,
             **kwargs)
-        self.mem_size = dilation_rate*(kernel_size-1)
+        self.mem_size = dilation_rate * (kernel_size - 1)
         self.return_memory = return_memory
         self.out_dims = filters
         self.nongate_activation = activations.get(activation)
-        
+
     def call(self, inputs, cond=None, memory=None):
         if memory is None:
             mem = K.zeros((K.shape(inputs)[0], self.mem_size, K.shape(inputs)[-1]))
@@ -50,7 +49,7 @@ class GatedConv(Conv1D):
         inputs = K.concatenate([mem, inputs], axis=1)
         ret = super(GatedConv, self).call(inputs)
         if cond is not None:
-            d = Dense(2*self.out_dims, use_bias=False, activation='linear')
+            d = Dense(2 * self.out_dims, use_bias=False, activation='linear')
             ret = ret + d(cond)
         ret = self.nongate_activation(ret[:, :, :self.out_dims]) * activations.sigmoid(ret[:, :, self.out_dims:])
         if self.return_memory:
