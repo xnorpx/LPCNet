@@ -41,6 +41,10 @@ add_library(lpcnet_object
 target_include_directories(lpcnet_object PUBLIC include src ${model_source_dir})
 
 if(WIN32)
+  add_definitions(/wd4244)
+  add_definitions(/wd4305)
+  add_definitions(/wd4267)
+  add_definitions(/wd4700)
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
   add_definitions(-D__AVX__)
   add_definitions(-D__AVX2__)
@@ -59,8 +63,8 @@ add_executable(dump_data src/dump_data.c)
 target_link_libraries(dump_data lpcnet_object)
 
 # fix PI def and variable array
-#add_executable(ceps_vq_train src/ceps_vq_train)
-#target_link_libraries(ceps_vq_train lpcnet_object)
+add_executable(ceps_vq_train src/ceps_vq_train)
+target_link_libraries(ceps_vq_train lpcnet_object)
 
 add_executable(lpcnet_demo src/lpcnet_demo.c)
 target_link_libraries(lpcnet_demo lpcnet_object)
