@@ -1,10 +1,9 @@
 from keras import backend as K
-from keras.engine.topology import Layer
-from keras.layers import activations, initializers, regularizers, constraints, InputSpec, Conv1D
-import numpy as np
+from keras.layers import Conv1D
+
 
 class CausalConv(Conv1D):
-    
+
     def __init__(self, filters,
                  kernel_size,
                  dilation_rate=1,
@@ -37,9 +36,9 @@ class CausalConv(Conv1D):
             kernel_constraint=kernel_constraint,
             bias_constraint=bias_constraint,
             **kwargs)
-        self.mem_size = dilation_rate*(kernel_size-1)
+        self.mem_size = dilation_rate * (kernel_size - 1)
         self.return_memory = return_memory
-        
+
     def call(self, inputs, memory=None):
         if memory is None:
             mem = K.zeros((K.shape(inputs)[0], self.mem_size, K.shape(inputs)[-1]))

@@ -1,11 +1,10 @@
 from keras import backend as K
 from keras.engine.topology import Layer
 from keras.layers import activations, initializers, regularizers, constraints, InputSpec
-import numpy as np
-import math
+
 
 class MDense(Layer):
-    
+
     def __init__(self, outputs,
                  channels=2,
                  activation=None,
@@ -53,10 +52,10 @@ class MDense(Layer):
         else:
             self.bias = None
         self.factor = self.add_weight(shape=(self.units, self.channels),
-                                    initializer='ones',
-                                    name='factor',
-                                    regularizer=self.bias_regularizer,
-                                    constraint=self.bias_constraint)
+                                      initializer='ones',
+                                      name='factor',
+                                      regularizer=self.bias_regularizer,
+                                      constraint=self.bias_constraint)
         self.input_spec = InputSpec(min_ndim=2, axes={-1: input_dim})
         self.built = True
 
