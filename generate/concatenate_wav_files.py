@@ -23,24 +23,22 @@ def concatenate_wav_files(wav_file_list: List, output_pcm_file: AnyStr) -> None:
     channels = int.from_bytes(ref_header[12:14], 'little')
     if channels != 1:
         logging.error(
-            "wav file {} has #{} channels, currently script only supports 1 channel".format(ref_wave_file, channels))
+            'wav file {} has #{} channels, currently script only supports 1 channel'.format(ref_wave_file, channels))
     fs = int.from_bytes(ref_header[16:20], 'little')
     if fs not in [8000, 16000, 24000, 32000, 44100, 48000]:
         logging.error(
-            "wav file {} has #{} sampling rate, which is not supported".format(ref_wave_file, fs))
+            'wav file {} has #{} sampling rate, which is not supported'.format(ref_wave_file, fs))
 
     bits_per_sample = int.from_bytes(ref_header[26:28], 'little')
     if bits_per_sample not in [16, 24, 32]:
         logging.error(
-            "wav file {} has #{} bits per sample, which is not supported".format(ref_wave_file, bits_per_sample))
+            'wav file {} has #{} bits per sample, which is not supported'.format(ref_wave_file, bits_per_sample))
 
     for wav_file in wav_file_list[1:len(wav_file_list)]:
         with open(wav_file, 'rb') as f:
             f.seek(8)
             current_header = bytearray(f.read(28))
             if current_header != ref_header:
-                print(ref_header)
-                print(current_header)
                 logging.error(
                     'abort concatenate of wavefiles as wavfile: {} wav header does not match wavfile {} header'.format(
                         wav_file,
@@ -58,18 +56,18 @@ def concatenate_wav_files(wav_file_list: List, output_pcm_file: AnyStr) -> None:
     concatenated_samples = int(concatenated_bytes // (bits_per_sample / 8))
     concatenated_time_min = int(concatenated_samples // fs) // 60
     logging.info(
-        "Concatenated #{} wav files into: {} pcm file with total length {} [min] with samplingrate {} [Hz]".format(
+        'Concatenated #{} wav files into: {} pcm file with total length {} [min] with samplingrate {} [Hz]'.format(
             len(wav_file_list), output_pcm_file, concatenated_time_min, fs))
 
 
 def find_wav_files(path: AnyStr) -> List:
     wav_files = []
-    logging.info("Look for wavfiles in {}".format(path))
+    logging.info('Look for wavfiles in {}'.format(path))
     for root, dirs, files in os.walk(path):
         for file in files:
             if file.endswith('.wav'):
                 wav_files.append(os.path.join(root, file))
-    logging.info("Found {} wavfiles in {}".format(len(wav_files), path))
+    logging.info('Found {} wavfiles in {}'.format(len(wav_files), path))
     return wav_files
 
 
@@ -88,12 +86,12 @@ def main():
                         stream=sys.stdout)
 
     if os.path.exists(args.output_file):
-        logging.info("Output file already exists: {}".format(args.output_file))
+        logging.info('Output file already exists: {}'.format(args.output_file))
         return
 
-    logging.info("Start concatenate wav files")
+    logging.info('Start concatenate wav files')
     concatenate_wav_files(find_wav_files(args.wav_file_path), args.output_file)
-    logging.info("Stop concatenate wav files")
+    logging.info('Stop concatenate wav files')
 
 
 if __name__ == '__main__':
