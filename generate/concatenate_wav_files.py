@@ -87,6 +87,10 @@ def main():
                         level=getattr(logging, args.log_level.upper()),
                         stream=sys.stdout)
 
+    if os.path.exists(args.output_file):
+        logging.info("Output file already exists: {}".format(args.output_file))
+        return
+
     logging.info("Start concatenate wav files")
     concatenate_wav_files(find_wav_files(args.wav_file_path), args.output_file)
     logging.info("Stop concatenate wav files")
