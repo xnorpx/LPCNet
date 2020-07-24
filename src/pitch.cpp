@@ -31,15 +31,9 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include "common.h"
 #include "pitch.h"
-//#include "modes.h"
 #include "stack_alloc.h"
-//#include "mathops.h"
 #include "celt_lpc.h"
 #include "math.h"
 #include <stdio.h>

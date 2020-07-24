@@ -29,12 +29,6 @@
 /* This code is originally from Mark Borgerding's KISS-FFT but has been
    heavily modified to better suit Opus */
 
-#ifndef SKIP_CONFIG_H
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-#endif
-
 #include "_kiss_fft_guts.h"
 #define CUSTOM_MODES
 
