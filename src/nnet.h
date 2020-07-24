@@ -28,10 +28,10 @@
 #ifndef _NNET_H_
 #define _NNET_H_
 
-#define ACTIVATION_LINEAR  0
+#define ACTIVATION_LINEAR 0
 #define ACTIVATION_SIGMOID 1
-#define ACTIVATION_TANH    2
-#define ACTIVATION_RELU    3
+#define ACTIVATION_TANH 2
+#define ACTIVATION_RELU 3
 #define ACTIVATION_SOFTMAX 4
 
 typedef struct {

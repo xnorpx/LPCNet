@@ -1,11 +1,12 @@
 #ifndef LPCNET_PRIVATE_H
 #define LPCNET_PRIVATE_H
 
+#include "celt_lpc.h"
 #include "common.h"
 #include "freq.h"
 #include "lpcnet.h"
 #include "nnet_data.h"
-#include "celt_lpc.h"
+#include <stdio.h>
 
 #define BITS_PER_CHAR 8
 
@@ -13,38 +14,38 @@
 #define PITCH_MAX_PERIOD 256
 
 #define PITCH_FRAME_SIZE 320
-#define PITCH_BUF_SIZE (PITCH_MAX_PERIOD+PITCH_FRAME_SIZE)
+#define PITCH_BUF_SIZE (PITCH_MAX_PERIOD + PITCH_FRAME_SIZE)
 
 #define MULTI 4
-#define MULTI_MASK (MULTI-1)
+#define MULTI_MASK (MULTI - 1)
 
 #define FORBIDDEN_INTERP 7
 
 #define FEATURES_DELAY (FEATURE_CONV1_DELAY + FEATURE_CONV2_DELAY)
 
 struct LPCNetState {
-    NNetState nnet;
-    int last_exc;
-    float last_sig[LPC_ORDER];
-    float old_input[FEATURES_DELAY][FEATURE_CONV2_OUT_SIZE];
-    float old_lpc[FEATURES_DELAY][LPC_ORDER];
-    float old_gain[FEATURES_DELAY];
-    int frame_count;
-    float deemph_mem;
+  NNetState nnet;
+  int last_exc;
+  float last_sig[LPC_ORDER];
+  float old_input[FEATURES_DELAY][FEATURE_CONV2_OUT_SIZE];
+  float old_lpc[FEATURES_DELAY][LPC_ORDER];
+  float old_gain[FEATURES_DELAY];
+  int frame_count;
+  float deemph_mem;
 };
 
 struct LPCNetDecState {
-    LPCNetState lpcnet_state;
-    float vq_mem[NB_BANDS];
+  LPCNetState lpcnet_state;
+  float vq_mem[NB_BANDS];
 };
 
-struct LPCNetEncState{
+struct LPCNetEncState {
   float analysis_mem[OVERLAP_SIZE];
   float mem_preemph;
   int pcount;
   float pitch_mem[LPC_ORDER];
   float pitch_filt;
-  float xc[10][PITCH_MAX_PERIOD+1];
+  float xc[10][PITCH_MAX_PERIOD + 1];
   float frame_weight[10];
   float exc_buf[PITCH_BUF_SIZE];
   float pitch_max_path[2][PITCH_MAX_PERIOD];
@@ -58,7 +59,6 @@ struct LPCNetEncState{
   float sig_mem[LPC_ORDER];
   int exc_mem;
 };
-
 
 extern float ceps_codebook1[];
 extern float ceps_codebook2[];
