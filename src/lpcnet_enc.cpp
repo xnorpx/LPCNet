@@ -473,7 +473,7 @@ LPCNET_EXPORT int lpcnet_encoder_init(LPCNetEncState *st) {
 
 LPCNET_EXPORT LPCNetEncState *lpcnet_encoder_create() {
   LPCNetEncState *st;
-  st = malloc(lpcnet_encoder_get_size());
+  st = reinterpret_cast<LPCNetEncState*>(malloc(lpcnet_encoder_get_size()));
   lpcnet_encoder_init(st);
   return st;
 }

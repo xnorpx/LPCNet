@@ -183,7 +183,7 @@ LPCNET_EXPORT int lpcnet_decoder_init(LPCNetDecState *st)
 LPCNET_EXPORT LPCNetDecState *lpcnet_decoder_create()
 {
   LPCNetDecState *st;
-  st = malloc(lpcnet_decoder_get_size());
+  st = reinterpret_cast<LPCNetDecState*>(malloc(lpcnet_decoder_get_size()));
   lpcnet_decoder_init(st);
   return st;
 }

@@ -510,16 +510,16 @@ int main(int argc, char **argv)
   nb_entries2a = 4096;
   nb_entries2b = 64;
   
-  data = malloc((nb_vectors*ndim+total_dim)*sizeof(*data));
-  qdata = malloc((nb_vectors*ndim+total_dim)*sizeof(*qdata));
-  pred = malloc(nb_vectors*ndim0*sizeof(*pred));
-  multi_data = malloc(MULTI*nb_vectors*ndim*sizeof(*multi_data));
-  multi_data2 = malloc(MULTI*nb_vectors*ndim*sizeof(*multi_data));
-  codebook = malloc(nb_entries*ndim0*sizeof(*codebook));
-  codebook2 = malloc(nb_entries1*ndim0*sizeof(*codebook2));
-  codebook3 = malloc(nb_entries1*ndim0*sizeof(*codebook3));
-  codebook_diff4 = malloc(nb_entries2a*ndim*sizeof(*codebook_diff4));
-  codebook_diff2 = malloc(nb_entries2b*ndim*sizeof(*codebook_diff2));
+  data = reinterpret_cast<float*>(malloc((nb_vectors*ndim+total_dim)*sizeof(*data)));
+  qdata = reinterpret_cast<float*>(malloc((nb_vectors*ndim+total_dim)*sizeof(*qdata)));
+  pred = reinterpret_cast<float*>(malloc(nb_vectors*ndim0*sizeof(*pred)));
+  multi_data = reinterpret_cast<float*>(malloc(MULTI*nb_vectors*ndim*sizeof(*multi_data)));
+  multi_data2 = reinterpret_cast<float*>(malloc(MULTI*nb_vectors*ndim*sizeof(*multi_data)));
+  codebook = reinterpret_cast<float*>(malloc(nb_entries*ndim0*sizeof(*codebook)));
+  codebook2 = reinterpret_cast<float*>(malloc(nb_entries1*ndim0*sizeof(*codebook2)));
+  codebook3 = reinterpret_cast<float*>(malloc(nb_entries1*ndim0*sizeof(*codebook3)));
+  codebook_diff4 = reinterpret_cast<float*>(malloc(nb_entries2a*ndim*sizeof(*codebook_diff4)));
+  codebook_diff2 = reinterpret_cast<float*>(malloc(nb_entries2b*ndim*sizeof(*codebook_diff2)));
   
   for (i=0;i<nb_vectors;i++)
   {
@@ -544,7 +544,7 @@ int main(int argc, char **argv)
   VALGRIND_CHECK_MEM_IS_DEFINED(pred, nb_entries*ndim0);
   vq_train(pred, nb_vectors, codebook, nb_entries, ndim0);
   
-  delta = malloc(nb_vectors*ndim0*sizeof(*data));
+  delta = reinterpret_cast<float*>(malloc(nb_vectors*ndim0*sizeof(*data)));
   err = 0;
   for (i=0;i<nb_vectors;i++)
   {

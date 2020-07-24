@@ -26,17 +26,17 @@ endif()
 
 add_library(lpcnet_object
             OBJECT
-            src/celt_lpc.c
-            src/common.c
-            src/freq.c
-            src/kiss_fft.c
-            src/lpcnet.c
-            src/lpcnet_dec.c
-            src/lpcnet_enc.c
-            src/nnet.c
-            src/pitch.c
-            ${model_source_dir}/nnet_data.c
-            ${model_source_dir}/ceps_codebooks.c)
+            src/celt_lpc.cpp
+            src/common.cpp
+            src/freq.cpp
+            src/kiss_fft.cpp
+            src/lpcnet.cpp
+            src/lpcnet_dec.cpp
+            src/lpcnet_enc.cpp
+            src/nnet.cpp
+            src/pitch.cpp
+            ${model_source_dir}/nnet_data.cpp
+            ${model_source_dir}/ceps_codebooks.cpp)
 
 target_include_directories(lpcnet_object PUBLIC include src ${model_source_dir})
 
@@ -51,22 +51,20 @@ if(WIN32)
   add_definitions(/arch:AVX2)
 endif()
 
-if(BUILD_TESTING)
-  enable_testing()
-  add_executable(test_vec src/test_vec.c)
-  target_link_libraries(test_vec lpcnet_object)
-  add_test(test_vec test_vec)
+enable_testing()
+add_executable(test_vec src/test_vec.cpp)
+target_link_libraries(test_vec lpcnet_object)
+add_test(test_vec test_vec)
 
-  add_executable(test_lpcnet src/test_lpcnet.c)
-  target_link_libraries(test_lpcnet lpcnet_object)
-endif()
+add_executable(test_lpcnet src/test_lpcnet.cpp)
+target_link_libraries(test_lpcnet lpcnet_object)
 
-add_executable(dump_data src/dump_data.c)
+add_executable(dump_data src/dump_data.cpp)
 target_link_libraries(dump_data lpcnet_object)
 
 # fix PI def and variable array
-add_executable(ceps_vq_train src/ceps_vq_train)
+add_executable(ceps_vq_train src/ceps_vq_train.cpp)
 target_link_libraries(ceps_vq_train lpcnet_object)
 
-add_executable(lpcnet_demo src/lpcnet_demo.c)
+add_executable(lpcnet_demo src/lpcnet_demo.cpp)
 target_link_libraries(lpcnet_demo lpcnet_object)
