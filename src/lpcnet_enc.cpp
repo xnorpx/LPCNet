@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <algorithm>
 
 //#define NB_FEATURES (2*NB_BANDS+3+LPC_ORDER)
 
@@ -579,7 +580,7 @@ void process_superframe(LPCNetEncState *st, unsigned char *buf, FILE *ffeat, int
       float max_prev;
       max_prev = st->pitch_max_path_all - 6.f;
       pitch_prev[sub][i] = st->best_i;
-      for (j = IMIN(0, 4 - i); j <= 4 && i + j < PITCH_MAX_PERIOD - PITCH_MIN_PERIOD; j++) {
+      for (j = std::min(0, 4 - i); j <= 4 && i + j < PITCH_MAX_PERIOD - PITCH_MIN_PERIOD; j++) {
         if (st->pitch_max_path[0][i + j] > max_prev) {
           max_prev = st->pitch_max_path[0][i + j] - .02f * abs(j) * abs(j);
           pitch_prev[sub][i] = i + j;
@@ -646,9 +647,9 @@ void process_superframe(LPCNetEncState *st, unsigned char *buf, FILE *ffeat, int
   /* Quantizing the pitch as "main" pitch + slope. */
   center_pitch = best_b + 5.5 * best_a;
   main_pitch = (int)floor(.5 + 21. * log2(center_pitch / PITCH_MIN_PERIOD));
-  main_pitch = IMAX(0, IMIN(63, main_pitch));
+  main_pitch = std::max(0, std::min(63, main_pitch));
   modulation = (int)floor(.5 + 16 * 7 * best_a / center_pitch);
-  modulation = IMAX(-3, IMIN(3, modulation));
+  modulation = std::max(-3, std::min(3, modulation));
   // printf("%d %d\n", main_pitch, modulation);
   // printf("%f %f\n", best_a/center_pitch, best_corr);
   // for (sub=2;sub<10;sub++) printf("%f %d %f\n", best_b + sub*best_a, best[sub], best_corr);
@@ -670,7 +671,7 @@ void process_superframe(LPCNetEncState *st, unsigned char *buf, FILE *ffeat, int
   if (quantize) {
     // printf("%f\n", st->features[3][0]);
     c0_id = (int)floor(.5 + st->features[3][0] * 4);
-    c0_id = IMAX(-64, IMIN(63, c0_id));
+    c0_id = std::max(-64, std::min(63, c0_id));
     st->features[3][0] = c0_id / 4.;
     quantize_3stage_mbest(&st->features[3][1], vq_end);
     /*perform_interp_relaxation(st->features, st->vq_mem);*/

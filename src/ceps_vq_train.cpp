@@ -13,20 +13,22 @@
 #include <stdlib.h>
 
 #include "stack_alloc.h"
+#include <algorithm>
 
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define COEF 0.0f
 #define MAX_ENTRIES 16384
 
 #define MULTI 4
 #define MULTI_MASK (MULTI - 1)
 
+constexpr float kPI = 3.14159265358979323846f;
+
 void compute_weights(const float *x, float *w, int ndim) {
   int i;
-  w[0] = MIN(x[0], x[1] - x[0]);
+  w[0] = std::min(x[0], x[1] - x[0]);
   for (i = 1; i < ndim - 1; i++)
-    w[i] = MIN(x[i] - x[i - 1], x[i + 1] - x[i]);
-  w[ndim - 1] = MIN(x[ndim - 1] - x[ndim - 2], M_PI - x[ndim - 1]);
+    w[i] = std::min(x[i] - x[i - 1], x[i + 1] - x[i]);
+  w[ndim - 1] = std::min(x[ndim - 1] - x[ndim - 2], kPI - x[ndim - 1]);
 
   for (i = 0; i < ndim; i++)
     w[i] = 1. / (.01 + w[i]);
@@ -132,10 +134,10 @@ int quantize_lsp(const float *x, const float *codebook1, const float *codebook2,
   SAVE_STACK;
   ALLOC(w3, ndim, float);
 
-  w[0] = MIN(x[0], x[1] - x[0]);
+  w[0] = std::min(x[0], x[1] - x[0]);
   for (i = 1; i < ndim - 1; i++)
-    w[i] = MIN(x[i] - x[i - 1], x[i + 1] - x[i]);
-  w[ndim - 1] = MIN(x[ndim - 1] - x[ndim - 2], M_PI - x[ndim - 1]);
+    w[i] = std::min(x[i] - x[i - 1], x[i + 1] - x[i]);
+  w[ndim - 1] = std::min(x[ndim - 1] - x[ndim - 2], kPI - x[ndim - 1]);
 
   /*
   for (i=0;i<ndim;i++)

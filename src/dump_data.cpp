@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <algorithm>
 
 static void biquad(float *y, float mem[2], const float *x, const float *b, const float *a, int N) {
   int i;
@@ -88,7 +89,7 @@ void write_audio(LPCNetEncState *st, const short *pcm, const int *noise, FILE *f
       data[4 * i + 3] = e;
       /* Simulate error on excitation. */
       e += noise[k * FRAME_SIZE + i];
-      e = IMIN(255, IMAX(0, e));
+      e = std::min(255.f, std::max(0.f, e));
 
       RNN_MOVE(&st->sig_mem[1], &st->sig_mem[0], LPC_ORDER - 1);
       st->sig_mem[0] = p + ulaw2lin(e);
@@ -101,7 +102,7 @@ void write_audio(LPCNetEncState *st, const short *pcm, const int *noise, FILE *f
 static short float2short(float x) {
   int i;
   i = (int)floor(.5 + x);
-  return IMAX(-32767, IMIN(32767, i));
+  return std::max(-32767, std::min(32767, i));
 }
 
 int main(int argc, char **argv) {
