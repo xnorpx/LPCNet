@@ -56,52 +56,52 @@
 #define S_MUL(a, b) MULT16_32_Q15(b, a)
 
 #define C_MUL(m, a, b)                                                                                                 \
-  do {                                                                                                                 \
-    (m).r = SUB32_ovflw(S_MUL((a).r, (b).r), S_MUL((a).i, (b).i));                                                     \
-    (m).i = ADD32_ovflw(S_MUL((a).r, (b).i), S_MUL((a).i, (b).r));                                                     \
-  } while (0)
+    do {                                                                                                               \
+        (m).r = SUB32_ovflw(S_MUL((a).r, (b).r), S_MUL((a).i, (b).i));                                                 \
+        (m).i = ADD32_ovflw(S_MUL((a).r, (b).i), S_MUL((a).i, (b).r));                                                 \
+    } while (0)
 
 #define C_MULC(m, a, b)                                                                                                \
-  do {                                                                                                                 \
-    (m).r = ADD32_ovflw(S_MUL((a).r, (b).r), S_MUL((a).i, (b).i));                                                     \
-    (m).i = SUB32_ovflw(S_MUL((a).i, (b).r), S_MUL((a).r, (b).i));                                                     \
-  } while (0)
+    do {                                                                                                               \
+        (m).r = ADD32_ovflw(S_MUL((a).r, (b).r), S_MUL((a).i, (b).i));                                                 \
+        (m).i = SUB32_ovflw(S_MUL((a).i, (b).r), S_MUL((a).r, (b).i));                                                 \
+    } while (0)
 
 #define C_MULBYSCALAR(c, s)                                                                                            \
-  do {                                                                                                                 \
-    (c).r = S_MUL((c).r, s);                                                                                           \
-    (c).i = S_MUL((c).i, s);                                                                                           \
-  } while (0)
+    do {                                                                                                               \
+        (c).r = S_MUL((c).r, s);                                                                                       \
+        (c).i = S_MUL((c).i, s);                                                                                       \
+    } while (0)
 
 #define DIVSCALAR(x, k) (x) = S_MUL(x, (TWID_MAX - ((k) >> 1)) / (k) + 1)
 
 #define C_FIXDIV(c, div)                                                                                               \
-  do {                                                                                                                 \
-    DIVSCALAR((c).r, div);                                                                                             \
-    DIVSCALAR((c).i, div);                                                                                             \
-  } while (0)
+    do {                                                                                                               \
+        DIVSCALAR((c).r, div);                                                                                         \
+        DIVSCALAR((c).i, div);                                                                                         \
+    } while (0)
 
 #define C_ADD(res, a, b)                                                                                               \
-  do {                                                                                                                 \
-    (res).r = ADD32_ovflw((a).r, (b).r);                                                                               \
-    (res).i = ADD32_ovflw((a).i, (b).i);                                                                               \
-  } while (0)
+    do {                                                                                                               \
+        (res).r = ADD32_ovflw((a).r, (b).r);                                                                           \
+        (res).i = ADD32_ovflw((a).i, (b).i);                                                                           \
+    } while (0)
 #define C_SUB(res, a, b)                                                                                               \
-  do {                                                                                                                 \
-    (res).r = SUB32_ovflw((a).r, (b).r);                                                                               \
-    (res).i = SUB32_ovflw((a).i, (b).i);                                                                               \
-  } while (0)
+    do {                                                                                                               \
+        (res).r = SUB32_ovflw((a).r, (b).r);                                                                           \
+        (res).i = SUB32_ovflw((a).i, (b).i);                                                                           \
+    } while (0)
 #define C_ADDTO(res, a)                                                                                                \
-  do {                                                                                                                 \
-    (res).r = ADD32_ovflw((res).r, (a).r);                                                                             \
-    (res).i = ADD32_ovflw((res).i, (a).i);                                                                             \
-  } while (0)
+    do {                                                                                                               \
+        (res).r = ADD32_ovflw((res).r, (a).r);                                                                         \
+        (res).i = ADD32_ovflw((res).i, (a).i);                                                                         \
+    } while (0)
 
 #define C_SUBFROM(res, a)                                                                                              \
-  do {                                                                                                                 \
-    (res).r = ADD32_ovflw((res).r, (a).r);                                                                             \
-    (res).i = SUB32_ovflw((res).i, (a).i);                                                                             \
-  } while (0)
+    do {                                                                                                               \
+        (res).r = ADD32_ovflw((res).r, (a).r);                                                                         \
+        (res).i = SUB32_ovflw((res).i, (a).i);                                                                         \
+    } while (0)
 
 #if defined(OPUS_ARM_INLINE_ASM)
 #include "arm/kiss_fft_armv4.h"
@@ -118,24 +118,24 @@
 
 #define S_MUL(a, b) ((a) * (b))
 #define C_MUL(m, a, b)                                                                                                 \
-  do {                                                                                                                 \
-    (m).r = (a).r * (b).r - (a).i * (b).i;                                                                             \
-    (m).i = (a).r * (b).i + (a).i * (b).r;                                                                             \
-  } while (0)
+    do {                                                                                                               \
+        (m).r = (a).r * (b).r - (a).i * (b).i;                                                                         \
+        (m).i = (a).r * (b).i + (a).i * (b).r;                                                                         \
+    } while (0)
 #define C_MULC(m, a, b)                                                                                                \
-  do {                                                                                                                 \
-    (m).r = (a).r * (b).r + (a).i * (b).i;                                                                             \
-    (m).i = (a).i * (b).r - (a).r * (b).i;                                                                             \
-  } while (0)
+    do {                                                                                                               \
+        (m).r = (a).r * (b).r + (a).i * (b).i;                                                                         \
+        (m).i = (a).i * (b).r - (a).r * (b).i;                                                                         \
+    } while (0)
 
 #define C_MUL4(m, a, b) C_MUL(m, a, b)
 
 #define C_FIXDIV(c, div) /* NOOP */
 #define C_MULBYSCALAR(c, s)                                                                                            \
-  do {                                                                                                                 \
-    (c).r *= (s);                                                                                                      \
-    (c).i *= (s);                                                                                                      \
-  } while (0)
+    do {                                                                                                               \
+        (c).r *= (s);                                                                                                  \
+        (c).i *= (s);                                                                                                  \
+    } while (0)
 #endif
 
 #ifndef CHECK_OVERFLOW_OP
@@ -144,34 +144,34 @@
 
 #ifndef C_ADD
 #define C_ADD(res, a, b)                                                                                               \
-  do {                                                                                                                 \
-    CHECK_OVERFLOW_OP((a).r, +, (b).r)                                                                                 \
-    CHECK_OVERFLOW_OP((a).i, +, (b).i)                                                                                 \
-    (res).r = (a).r + (b).r;                                                                                           \
-    (res).i = (a).i + (b).i;                                                                                           \
-  } while (0)
+    do {                                                                                                               \
+        CHECK_OVERFLOW_OP((a).r, +, (b).r)                                                                             \
+        CHECK_OVERFLOW_OP((a).i, +, (b).i)                                                                             \
+        (res).r = (a).r + (b).r;                                                                                       \
+        (res).i = (a).i + (b).i;                                                                                       \
+    } while (0)
 #define C_SUB(res, a, b)                                                                                               \
-  do {                                                                                                                 \
-    CHECK_OVERFLOW_OP((a).r, -, (b).r)                                                                                 \
-    CHECK_OVERFLOW_OP((a).i, -, (b).i)                                                                                 \
-    (res).r = (a).r - (b).r;                                                                                           \
-    (res).i = (a).i - (b).i;                                                                                           \
-  } while (0)
+    do {                                                                                                               \
+        CHECK_OVERFLOW_OP((a).r, -, (b).r)                                                                             \
+        CHECK_OVERFLOW_OP((a).i, -, (b).i)                                                                             \
+        (res).r = (a).r - (b).r;                                                                                       \
+        (res).i = (a).i - (b).i;                                                                                       \
+    } while (0)
 #define C_ADDTO(res, a)                                                                                                \
-  do {                                                                                                                 \
-    CHECK_OVERFLOW_OP((res).r, +, (a).r)                                                                               \
-    CHECK_OVERFLOW_OP((res).i, +, (a).i)                                                                               \
-    (res).r += (a).r;                                                                                                  \
-    (res).i += (a).i;                                                                                                  \
-  } while (0)
+    do {                                                                                                               \
+        CHECK_OVERFLOW_OP((res).r, +, (a).r)                                                                           \
+        CHECK_OVERFLOW_OP((res).i, +, (a).i)                                                                           \
+        (res).r += (a).r;                                                                                              \
+        (res).i += (a).i;                                                                                              \
+    } while (0)
 
 #define C_SUBFROM(res, a)                                                                                              \
-  do {                                                                                                                 \
-    CHECK_OVERFLOW_OP((res).r, -, (a).r)                                                                               \
-    CHECK_OVERFLOW_OP((res).i, -, (a).i)                                                                               \
-    (res).r -= (a).r;                                                                                                  \
-    (res).i -= (a).i;                                                                                                  \
-  } while (0)
+    do {                                                                                                               \
+        CHECK_OVERFLOW_OP((res).r, -, (a).r)                                                                           \
+        CHECK_OVERFLOW_OP((res).i, -, (a).i)                                                                           \
+        (res).r -= (a).r;                                                                                              \
+        (res).i -= (a).i;                                                                                              \
+    } while (0)
 #endif /* C_ADD defined */
 
 #ifdef FIXED_POINT
@@ -191,15 +191,15 @@
 #endif
 
 #define kf_cexp(x, phase)                                                                                              \
-  do {                                                                                                                 \
-    (x)->r = KISS_FFT_COS(phase);                                                                                      \
-    (x)->i = KISS_FFT_SIN(phase);                                                                                      \
-  } while (0)
+    do {                                                                                                               \
+        (x)->r = KISS_FFT_COS(phase);                                                                                  \
+        (x)->i = KISS_FFT_SIN(phase);                                                                                  \
+    } while (0)
 
 #define kf_cexp2(x, phase)                                                                                             \
-  do {                                                                                                                 \
-    (x)->r = TRIG_UPSCALE * celt_cos_norm((phase));                                                                    \
-    (x)->i = TRIG_UPSCALE * celt_cos_norm((phase)-32768);                                                              \
-  } while (0)
+    do {                                                                                                               \
+        (x)->r = TRIG_UPSCALE * celt_cos_norm((phase));                                                                \
+        (x)->i = TRIG_UPSCALE * celt_cos_norm((phase)-32768);                                                          \
+    } while (0)
 
 #endif /* KISS_FFT_GUTS_H */

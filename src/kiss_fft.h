@@ -65,13 +65,13 @@ extern "C" {
 #endif
 
 typedef struct {
-  kiss_fft_scalar r;
-  kiss_fft_scalar i;
+    kiss_fft_scalar r;
+    kiss_fft_scalar i;
 } kiss_fft_cpx;
 
 typedef struct {
-  kiss_twiddle_scalar r;
-  kiss_twiddle_scalar i;
+    kiss_twiddle_scalar r;
+    kiss_twiddle_scalar i;
 } kiss_twiddle_cpx;
 
 #define MAXFACTORS 8
@@ -81,21 +81,21 @@ typedef struct {
  */
 
 typedef struct arch_fft_state {
-  int is_supported;
-  void *priv;
+    int is_supported;
+    void *priv;
 } arch_fft_state;
 
 typedef struct kiss_fft_state {
-  int nfft;
-  opus_val16 scale;
+    int nfft;
+    opus_val16 scale;
 #ifdef FIXED_POINT
-  int scale_shift;
+    int scale_shift;
 #endif
-  int shift;
-  opus_int16 factors[2 * MAXFACTORS];
-  const opus_int16 *bitrev;
-  const kiss_twiddle_cpx *twiddles;
-  arch_fft_state *arch_fft;
+    int shift;
+    opus_int16 factors[2 * MAXFACTORS];
+    const opus_int16 *bitrev;
+    const kiss_twiddle_cpx *twiddles;
+    arch_fft_state *arch_fft;
 } kiss_fft_state;
 
 #if defined(HAVE_ARM_NE10)

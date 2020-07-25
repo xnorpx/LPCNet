@@ -40,15 +40,16 @@ add_library(lpcnet_object
 
 target_include_directories(lpcnet_object PUBLIC include src ${model_source_dir})
 
-if(WIN32)
-  add_definitions(/wd4244)
-  add_definitions(/wd4305)
-  add_definitions(/wd4267)
-  add_definitions(/wd4700)
+if(MSVC)
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
   add_definitions(-D__AVX__)
   add_definitions(-D__AVX2__)
   add_definitions(/arch:AVX2)
+endif()
+
+if (MSVC)
+    # remove default warning level from CMAKE_CXX_FLAGS_INIT
+    string (REGEX REPLACE "/W[0-4]" "" CMAKE_CXX_FLAGS_INIT "${CMAKE_CXX_FLAGS_INIT}")
 endif()
 
 enable_testing()
