@@ -37,7 +37,7 @@ max_mdense_tmp = 1
 
 
 def printVector(f, vector, name, dtype='float'):
-    v = np.reshape(vector, (-1));
+    v = np.reshape(vector, (-1))
     # print('static const float ', name, '[', len(v), '] = \n', file=f)
     f.write('static const {} {}[{}] = {{\n   '.format(dtype, name, len(v)))
     for i in range(0, len(v)):
@@ -45,20 +45,21 @@ def printVector(f, vector, name, dtype='float'):
         if (i != len(v) - 1):
             f.write(',')
         else:
-            break;
+            break
         if (i % 8 == 7):
             f.write("\n   ")
         else:
             f.write(" ")
     # print(v, file=f)
     f.write('\n};\n\n')
-    return;
+    return
 
 
 def printSparseVector(f, A, name):
     N = A.shape[0]
     W = np.zeros((0,))
-    diag = np.concatenate([np.diag(A[:, :N]), np.diag(A[:, N:2 * N]), np.diag(A[:, 2 * N:])])
+    diag = np.concatenate([np.diag(A[:, :N]), np.diag(
+        A[:, N:2 * N]), np.diag(A[:, 2 * N:])])
     A[:, :N] = A[:, :N] - np.diag(np.diag(A[:, :N]))
     A[:, N:2 * N] = A[:, N:2 * N] - np.diag(np.diag(A[:, N:2 * N]))
     A[:, 2 * N:] = A[:, 2 * N:] - np.diag(np.diag(A[:, 2 * N:]))
@@ -77,11 +78,12 @@ def printSparseVector(f, A, name):
     printVector(f, W, name)
     # idx = np.tile(np.concatenate([np.array([N]), np.arange(N)]), 3*N//16)
     printVector(f, idx, name + '_idx', dtype='int')
-    return;
+    return
 
 
 def dump_layer_ignore(self, f, hf):
-    print("ignoring layer " + self.name + " of type " + self.__class__.__name__)
+    print("ignoring layer " + self.name +
+          " of type " + self.__class__.__name__)
     return False
 
 
@@ -107,10 +109,12 @@ def dump_sparse_gru(self, f, hf):
     max_rnn_neurons = max(max_rnn_neurons, neurons)
     f.write(
         'const SparseGRULayer {} = {{\n   {}_bias,\n   {}_recurrent_weights_diag,\n   {}_recurrent_weights,\n   {}_recurrent_weights_idx,\n   {}, ACTIVATION_{}, {}\n}};\n\n'
-            .format(name, name, name, name, name, weights[0].shape[1] // 3, activation, reset_after))
-    hf.write('#define {}_OUT_SIZE {}\n'.format(name.upper(), weights[0].shape[1] // 3))
-    hf.write('#define {}_STATE_SIZE {}\n'.format(name.upper(), weights[0].shape[1] // 3))
-    hf.write('extern const SparseGRULayer {};\n\n'.format(name));
+        .format(name, name, name, name, name, weights[0].shape[1] // 3, activation, reset_after))
+    hf.write('#define {}_OUT_SIZE {}\n'.format(
+        name.upper(), weights[0].shape[1] // 3))
+    hf.write('#define {}_STATE_SIZE {}\n'.format(
+        name.upper(), weights[0].shape[1] // 3))
+    hf.write('extern const SparseGRULayer {};\n\n'.format(name))
     return True
 
 
@@ -134,10 +138,12 @@ def dump_gru_layer(self, f, hf):
     max_rnn_neurons = max(max_rnn_neurons, neurons)
     f.write(
         'const GRULayer {} = {{\n   {}_bias,\n   {}_weights,\n   {}_recurrent_weights,\n   {}, {}, ACTIVATION_{}, {}\n}};\n\n'
-            .format(name, name, name, name, weights[0].shape[0], weights[0].shape[1] // 3, activation, reset_after))
-    hf.write('#define {}_OUT_SIZE {}\n'.format(name.upper(), weights[0].shape[1] // 3))
-    hf.write('#define {}_STATE_SIZE {}\n'.format(name.upper(), weights[0].shape[1] // 3))
-    hf.write('extern const GRULayer {};\n\n'.format(name));
+        .format(name, name, name, name, weights[0].shape[0], weights[0].shape[1] // 3, activation, reset_after))
+    hf.write('#define {}_OUT_SIZE {}\n'.format(
+        name.upper(), weights[0].shape[1] // 3))
+    hf.write('#define {}_STATE_SIZE {}\n'.format(
+        name.upper(), weights[0].shape[1] // 3))
+    hf.write('extern const GRULayer {};\n\n'.format(name))
     return True
 
 
@@ -151,7 +157,7 @@ def dump_dense_layer_impl(name, weights, bias, activation, f, hf):
     f.write('const DenseLayer {} = {{\n   {}_bias,\n   {}_weights,\n   {}, {}, ACTIVATION_{}\n}};\n\n'
             .format(name, name, name, weights.shape[0], weights.shape[1], activation))
     hf.write('#define {}_OUT_SIZE {}\n'.format(name.upper(), weights.shape[1]))
-    hf.write('extern const DenseLayer {};\n\n'.format(name));
+    hf.write('extern const DenseLayer {};\n\n'.format(name))
 
 
 def dump_dense_layer(self, f, hf):
@@ -175,12 +181,14 @@ def dump_mdense_layer(self, f, hf):
     printVector(f, np.transpose(weights[1], (1, 0)), name + '_bias')
     printVector(f, np.transpose(weights[2], (1, 0)), name + '_factor')
     activation = self.activation.__name__.upper()
-    max_mdense_tmp = max(max_mdense_tmp, weights[0].shape[0] * weights[0].shape[2])
+    max_mdense_tmp = max(
+        max_mdense_tmp, weights[0].shape[0] * weights[0].shape[2])
     f.write(
         'const MDenseLayer {} = {{\n   {}_bias,\n   {}_weights,\n   {}_factor,\n   {}, {}, {}, ACTIVATION_{}\n}};\n\n'
-            .format(name, name, name, name, weights[0].shape[1], weights[0].shape[0], weights[0].shape[2], activation))
-    hf.write('#define {}_OUT_SIZE {}\n'.format(name.upper(), weights[0].shape[0]))
-    hf.write('extern const MDenseLayer {};\n\n'.format(name));
+        .format(name, name, name, name, weights[0].shape[1], weights[0].shape[0], weights[0].shape[2], activation))
+    hf.write('#define {}_OUT_SIZE {}\n'.format(
+        name.upper(), weights[0].shape[0]))
+    hf.write('extern const MDenseLayer {};\n\n'.format(name))
     return False
 
 
@@ -195,13 +203,17 @@ def dump_conv1d_layer(self, f, hf):
     printVector(f, weights[0], name + '_weights')
     printVector(f, weights[-1], name + '_bias')
     activation = self.activation.__name__.upper()
-    max_conv_inputs = max(max_conv_inputs, weights[0].shape[1] * weights[0].shape[0])
+    max_conv_inputs = max(
+        max_conv_inputs, weights[0].shape[1] * weights[0].shape[0])
     f.write('const Conv1DLayer {} = {{\n   {}_bias,\n   {}_weights,\n   {}, {}, {}, ACTIVATION_{}\n}};\n\n'
             .format(name, name, name, weights[0].shape[1], weights[0].shape[0], weights[0].shape[2], activation))
-    hf.write('#define {}_OUT_SIZE {}\n'.format(name.upper(), weights[0].shape[2]))
-    hf.write('#define {}_STATE_SIZE ({}*{})\n'.format(name.upper(), weights[0].shape[1], (weights[0].shape[0] - 1)))
-    hf.write('#define {}_DELAY {}\n'.format(name.upper(), (weights[0].shape[0] - 1) // 2))
-    hf.write('extern const Conv1DLayer {};\n\n'.format(name));
+    hf.write('#define {}_OUT_SIZE {}\n'.format(
+        name.upper(), weights[0].shape[2]))
+    hf.write('#define {}_STATE_SIZE ({}*{})\n'.format(name.upper(),
+                                                      weights[0].shape[1], (weights[0].shape[0] - 1)))
+    hf.write('#define {}_DELAY {}\n'.format(
+        name.upper(), (weights[0].shape[0] - 1) // 2))
+    hf.write('extern const Conv1DLayer {};\n\n'.format(name))
     return True
 
 
@@ -213,7 +225,7 @@ def dump_embedding_layer_impl(name, weights, f, hf):
     f.write('const EmbeddingLayer {} = {{\n   {}_weights,\n   {}, {}\n}};\n\n'
             .format(name, name, weights.shape[0], weights.shape[1]))
     hf.write('#define {}_OUT_SIZE {}\n'.format(name.upper(), weights.shape[1]))
-    hf.write('extern const EmbeddingLayer {};\n\n'.format(name));
+    hf.write('extern const EmbeddingLayer {};\n\n'.format(name))
 
 
 def dump_embedding_layer(self, f, hf):
@@ -227,14 +239,15 @@ def dump_embedding_layer(self, f, hf):
 Embedding.dump_layer = dump_embedding_layer
 
 model, _, _ = lpcnet.new_lpcnet_model(rnn_units1=384, use_gpu=False)
-model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['sparse_categorical_accuracy'])
+model.compile(optimizer='adam', loss='sparse_categorical_crossentropy',
+              metrics=['sparse_categorical_accuracy'])
 # model.summary()
 
 model.load_weights(sys.argv[1])
 
 if len(sys.argv) > 2:
-    cfile = sys.argv[2];
-    hfile = sys.argv[3];
+    cfile = sys.argv[2]
+    hfile = sys.argv[3]
 else:
     cfile = 'nnet_data.c'
     hfile = 'nnet_data.h'
