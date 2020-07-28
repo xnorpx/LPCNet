@@ -27,22 +27,22 @@
 
 # Train a LPCNet model (note not a Wavenet model)
 
-import lpcnet
-import sys
-import numpy as np
-from keras.optimizers import Adam
 from keras.callbacks import ModelCheckpoint
+from keras.optimizers import Adam
+import lpcnet
+import numpy as np
+import sys
+import os
+#import tensorflow as tf
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
-import tensorflow as tf
-from keras.backend.tensorflow_backend import set_session
-
-config = tf.ConfigProto()
+#config = tf.ConfigProto()
 
 # use this option to reserve GPU memory, e.g. for running more than
 # one thing at a time.  Best to disable for GPUs with small memory
-config.gpu_options.per_process_gpu_memory_fraction = 0.44
+#config.gpu_options.per_process_gpu_memory_fraction = 0.44
 
-set_session(tf.Session(config=config))
+#set_session(tf.Session(config=config))
 
 nb_epochs = 120
 
@@ -51,15 +51,18 @@ batch_size = 64
 
 model, _, _ = lpcnet.new_lpcnet_model(training=True)
 
-model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['sparse_categorical_accuracy'])
+model.compile(optimizer='adam', loss='sparse_categorical_crossentropy',
+              metrics=['sparse_categorical_accuracy'])
 model.summary()
+
+# We know there is 55 f32 features
 
 feature_file = sys.argv[1]
 pcm_file = sys.argv[2]  # 16 bit unsigned short PCM samples
 frame_size = model.frame_size
 nb_features = 55
 nb_used_features = model.nb_used_features
-feature_chunk_size = 15
+feature_chunk_size = 15 # no idea what this is
 pcm_chunk_size = frame_size * feature_chunk_size
 
 # u for unquantised, load 16 bit PCM samples and convert to mu-law
@@ -93,6 +96,16 @@ features = np.concatenate([fpad1, features, fpad2], axis=1)
 
 periods = (.1 + 50 * features[:, :, 36:37] + 100).astype('int16')
 
+print(periods.shape)
+assert(False)
+
+# sanity check training data aginst pitch embedding range
+for p in periods:
+    if p < 256:
+        print(p)
+assert np.all(periods >= 40), "pitch embedding < 40"
+assert np.all(periods < 256), "pitch embeddeding > 255"
+
 in_data = np.concatenate([sig, pred, in_exc], axis=-1)
 
 del sig
@@ -117,7 +130,8 @@ else:
     lr = 0.001
     decay = 5e-5
 
-model.compile(optimizer=Adam(lr, amsgrad=True, decay=decay), loss='sparse_categorical_crossentropy')
-model.save_weights('lpcnet30_384_10_G16_00.h5');
+model.compile(optimizer=Adam(lr, amsgrad=True, decay=decay),
+              loss='sparse_categorical_crossentropy')
+model.save_weights('lpcnet30_384_10_G16_00.h5')
 model.fit([in_data, features, periods], out_exc, batch_size=batch_size, epochs=nb_epochs, validation_split=0.0,
           callbacks=[checkpoint, sparsify])

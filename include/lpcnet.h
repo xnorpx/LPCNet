@@ -28,7 +28,7 @@
 #define _LPCNET_H_
 
 #ifndef LPCNET_EXPORT
-# if defined(WIN32)
+# if defined(_WIN32)
 #  if defined(LPCNET_BUILD) && defined(DLL_EXPORT)
 #   define LPCNET_EXPORT __declspec(dllexport)
 #  else

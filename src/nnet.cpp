@@ -314,7 +314,7 @@ void compute_embedding(const EmbeddingLayer *layer, float *output, int input) {
     int i;
     celt_assert(input >= 0);
     celt_assert(input < layer->nb_inputs);
-    /*if (layer->dim == 64) printf("%d\n", input);*/
+    /*if (layer->dim == 64) //spdlog::get("console")->info("%d\n", input);*/
     for (i = 0; i < layer->dim; i++) {
         output[i] = layer->embedding_weights[input * layer->dim + i];
     }
@@ -324,7 +324,7 @@ void accum_embedding(const EmbeddingLayer *layer, float *output, int input) {
     int i;
     celt_assert(input >= 0);
     celt_assert(input < layer->nb_inputs);
-    /*if (layer->dim == 64) printf("%d\n", input);*/
+    /*if (layer->dim == 64) //spdlog::get("console")->info("%d\n", input);*/
     for (i = 0; i < layer->dim; i++) {
         output[i] += layer->embedding_weights[input * layer->dim + i];
     }

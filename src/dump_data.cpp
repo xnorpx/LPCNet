@@ -70,6 +70,7 @@ void compute_noise(int *noise, float noise_std) {
 
 void write_audio(LPCNetEncState *st, const short *pcm, const int *noise, FILE *file) {
     int i, k;
+    /* figure 3: https://jmvalin.ca/papers/lpcnet_codec.pdf */
     for (k = 0; k < 4; k++) {
         unsigned char data[4 * FRAME_SIZE];
         for (i = 0; i < FRAME_SIZE; i++) {
@@ -89,7 +90,7 @@ void write_audio(LPCNetEncState *st, const short *pcm, const int *noise, FILE *f
             data[4 * i + 3] = e;
             /* Simulate error on excitation. */
             e += noise[k * FRAME_SIZE + i];
-            e = std::min(255.f, std::max(0.f, e));
+            e = std::min(255.f, std::max(0.f, e)); // clamp
 
             RNN_MOVE(&st->sig_mem[1], &st->sig_mem[0], LPC_ORDER - 1);
             st->sig_mem[0] = p + ulaw2lin(e);
@@ -106,6 +107,11 @@ static short float2short(float x) {
 }
 
 int main(int argc, char **argv) {
+
+    //auto console = spdlog::stdout_color_mt("console");
+    //auto err_logger = spdlog::stderr_color_mt("stderr");
+    //spdlog::get("console")->info("loggers can be retrieved from a global registry using the spdlog::get(logger_name)");
+
     int i;
     int count = 0;
     static const float a_hp[2] = {-1.99599, 0.99600};
@@ -129,6 +135,7 @@ int main(int argc, char **argv) {
     int last_silent = 1;
     float old_speech_gain = 1;
     int one_pass_completed = 0;
+    bool superframe = false;
     LPCNetEncState *st;
     float noise_std = 0;
     int training = -1;
@@ -232,6 +239,7 @@ int main(int argc, char **argv) {
             last_silent = silent;
         }
         if (count * FRAME_SIZE_5MS >= 10000000 && one_pass_completed)
+        //if (superframe)
             break;
         if (training && ++gain_change_count > 2821) {
             float tmp;
@@ -273,6 +281,7 @@ int main(int argc, char **argv) {
             if (fpcm)
                 write_audio(st, pcmbuf, noisebuf, fpcm);
             st->pcount = 0;
+            superframe = true;
         }
         // if (fpcm) fwrite(pcm, sizeof(short), FRAME_SIZE, fpcm);
         for (i = 0; i < TRAINING_OFFSET; i++)

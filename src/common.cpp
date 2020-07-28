@@ -48,7 +48,7 @@ static void single_interp(float *x, const float *left, const float *right, int i
         for (i = 0; i < NB_BANDS; i++) {
             err += (x[i] - ref[i]) * (x[i] - ref[i]);
         }
-        printf("%f\n", sqrt(err / NB_BANDS));
+        //spdlog::get("console")->info("%f\n", sqrt(err / NB_BANDS));
     }
 }
 

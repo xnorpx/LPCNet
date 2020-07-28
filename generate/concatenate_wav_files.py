@@ -68,7 +68,7 @@ def find_wav_files(path: AnyStr) -> List:
             if file.endswith('.wav'):
                 wav_files.append(os.path.join(root, file))
     logging.info('Found {} wavfiles in {}'.format(len(wav_files), path))
-    return wav_files
+    return wav_files[0:20]
 
 
 def main():

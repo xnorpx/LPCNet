@@ -41,7 +41,8 @@ class CausalConv(Conv1D):
 
     def call(self, inputs, memory=None):
         if memory is None:
-            mem = K.zeros((K.shape(inputs)[0], self.mem_size, K.shape(inputs)[-1]))
+            mem = K.zeros(
+                (K.shape(inputs)[0], self.mem_size, K.shape(inputs)[-1]))
         else:
             mem = K.variable(K.cast_to_floatx(memory))
         inputs = K.concatenate([mem, inputs], axis=1)

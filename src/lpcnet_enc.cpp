@@ -39,6 +39,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+
 //#define NB_FEATURES (2*NB_BANDS+3+LPC_ORDER)
 
 #define SURVIVORS 5
@@ -112,7 +113,7 @@ int quantize_2stage(float *x) {
         for (i = 0; i < NB_BANDS_1; i++) {
             err += (x[i] - ref[i]) * (x[i] - ref[i]);
         }
-        printf("%f\n", sqrt(err / NB_BANDS));
+        //spdlog::get("console")->info("%f\n", sqrt(err / NB_BANDS));
     }
 
     return id;
@@ -146,7 +147,7 @@ int quantize_3stage_mbest(float *x, int entry[3]) {
                 index2[m][1] = curr_index[m];
                 glob_dist[m] = curr_dist[m];
             }
-            // printf("%f ", glob_dist[0]);
+            //spdlog::get("console")->info("%f ", glob_dist[0]);
         } else if (curr_dist[0] < glob_dist[SURVIVORS - 1]) {
             m = 0;
             int pos;
@@ -181,7 +182,7 @@ int quantize_3stage_mbest(float *x, int entry[3]) {
                 index3[m][2] = curr_index[m];
                 glob_dist[m] = curr_dist[m];
             }
-            // printf("%f ", glob_dist[0]);
+            //spdlog::get("console")->info("%f ", glob_dist[0]);
         } else if (curr_dist[0] < glob_dist[SURVIVORS - 1]) {
             m = 0;
             int pos;
@@ -206,7 +207,7 @@ int quantize_3stage_mbest(float *x, int entry[3]) {
     entry[0] = id = index3[0][0];
     entry[1] = id2 = index3[0][1];
     entry[2] = id3 = index3[0][2];
-    // printf("%f ", glob_dist[0]);
+    //spdlog::get("console")->info("%f ", glob_dist[0]);
     for (i = 0; i < NB_BANDS_1; i++) {
         x[i] -= ceps_codebook1[id * NB_BANDS_1 + i];
     }
@@ -223,7 +224,7 @@ int quantize_3stage_mbest(float *x, int entry[3]) {
         for (i = 0; i < NB_BANDS_1; i++) {
             err += (x[i] - ref[i]) * (x[i] - ref[i]);
         }
-        printf("%f\n", sqrt(err / NB_BANDS));
+        //spdlog::get("console")->info("%f\n", sqrt(err / NB_BANDS));
     }
 
     return id;
@@ -291,13 +292,13 @@ int quantize_diff(float *x, float *left, float *right, float *codebook, int bits
     for (i = 0; i < NB_BANDS; i++) {
         x[i] = pred[(id & MULTI_MASK) * NB_BANDS + i] + s * codebook[id * NB_BANDS + i];
     }
-    // printf("%d %f ", id&MULTI_MASK, s);
+    //spdlog::get("console")->info("%d %f ", id&MULTI_MASK, s);
     if (0) {
         float err = 0;
         for (i = 0; i < NB_BANDS; i++) {
             err += (x[i] - ref[i]) * (x[i] - ref[i]);
         }
-        printf("%f\n", sqrt(err / NB_BANDS));
+        //spdlog::get("console")->info("%f\n", sqrt(err / NB_BANDS));
     }
 
     return id;
@@ -354,7 +355,7 @@ void interp_diff(float *x, float *left, float *right, float *codebook, int bits,
             best_pred = k;
         }
     }
-    // printf("%d ", best_pred);
+    //spdlog::get("console")->info("%d ", best_pred);
     for (i = 0; i < NB_BANDS; i++) {
         x[i] = pred[best_pred * NB_BANDS + i];
     }
@@ -363,7 +364,7 @@ void interp_diff(float *x, float *left, float *right, float *codebook, int bits,
         for (i = 0; i < NB_BANDS; i++) {
             err += (x[i] - ref[i]) * (x[i] - ref[i]);
         }
-        printf("%f\n", sqrt(err / NB_BANDS));
+        //spdlog::get("console")->info("%f\n", sqrt(err / NB_BANDS));
     }
 }
 
@@ -386,7 +387,7 @@ int double_interp_search(float features[4][NB_TOTAL_FEATURES], const float *mem)
             }
         }
     }
-    // printf("%d %d %f    %d %f\n", id0, id1, dist[0][id0] + dist[1][id1], best_id, min_dist);
+    ////spdlog::get("console")->info("%d %d %f    %d %f\n", id0, id1, dist[0][id0] + dist[1][id1], best_id, min_dist);
     return best_id - (best_id >= FORBIDDEN_INTERP);
 }
 
@@ -457,6 +458,7 @@ LPCNET_EXPORT int lpcnet_encoder_get_size() { return sizeof(LPCNetEncState); }
 
 LPCNET_EXPORT int lpcnet_encoder_init(LPCNetEncState *st) {
     memset(st, 0, sizeof(*st));
+    st->exc_mem = lin2ulaw(0);
     return 0;
 }
 
@@ -520,7 +522,7 @@ void compute_frame_features(LPCNetEncState *st, const float *in) {
         st->pitch_mem[0] = aligned_in[i];
         st->exc_buf[PITCH_MAX_PERIOD + i] = sum + .7 * st->pitch_filt;
         st->pitch_filt = sum;
-        // printf("%f\n", st->exc_buf[PITCH_MAX_PERIOD+i]);
+        //spdlog::get("console")->info("{}", st->exc_buf[PITCH_MAX_PERIOD+i]);
     }
     /* Cross-correlation on half-frames. */
     for (sub = 0; sub < 2; sub++) {
@@ -530,16 +532,14 @@ void compute_frame_features(LPCNetEncState *st, const float *in) {
         ener0 =
             celt_inner_prod(&st->exc_buf[PITCH_MAX_PERIOD + off], &st->exc_buf[PITCH_MAX_PERIOD + off], FRAME_SIZE / 2);
         st->frame_weight[2 + 2 * st->pcount + sub] = ener0;
-        // printf("%f\n", st->frame_weight[2+2*st->pcount+sub]);
+        //spdlog::get("console")->info("{}", st->frame_weight[2+2*st->pcount+sub]);
         for (i = 0; i < PITCH_MAX_PERIOD; i++) {
             ener = (1 + ener0 + celt_inner_prod(&st->exc_buf[i + off], &st->exc_buf[i + off], FRAME_SIZE / 2));
             st->xc[2 + 2 * st->pcount + sub][i] = 2 * xcorr[i] / ener;
         }
-#if 0
-    for (i=0;i<PITCH_MAX_PERIOD;i++)
-      printf("%f ", st->xc[2*st->pcount+sub][i]);
-    printf("\n");
-#endif
+        for (i=0;i<PITCH_MAX_PERIOD;i++) {
+          //spdlog::get("console")->info("{}", st->xc[2*st->pcount+sub][i]);
+        }
     }
 }
 
@@ -598,8 +598,8 @@ void process_superframe(LPCNetEncState *st, unsigned char *buf, FILE *ffeat, int
         /* Renormalize. */
         for (i = 0; i < PITCH_MAX_PERIOD - PITCH_MIN_PERIOD; i++)
             st->pitch_max_path[1][i] -= max_path_all;
-        // for (i=0;i<PITCH_MAX_PERIOD-PITCH_MIN_PERIOD;i++) printf("%f ", st->pitch_max_path[1][i]);
-        // printf("\n");
+        // for (i=0;i<PITCH_MAX_PERIOD-PITCH_MIN_PERIOD;i++) //spdlog::get("console")->info("%f ", st->pitch_max_path[1][i]);
+        //spdlog::get("console")->info("\n");
         RNN_COPY(&st->pitch_max_path[0][0], &st->pitch_max_path[1][0], PITCH_MAX_PERIOD);
         st->pitch_max_path_all = max_path_all;
         st->best_i = best_i;
@@ -616,9 +616,9 @@ void process_superframe(LPCNetEncState *st, unsigned char *buf, FILE *ffeat, int
     if (quantize && frame_corr < 0)
         frame_corr = 0;
     for (sub = 0; sub < 8; sub++) {
-        // printf("%d %f\n", best[2+sub], frame_corr);
+        //spdlog::get("console")->info("%d %f\n", best[2+sub], frame_corr);
     }
-    // printf("\n");
+    //spdlog::get("console")->info("\n");
     for (sub = 2; sub < 10; sub++) {
         w = st->frame_weight[sub];
         sw += w;
@@ -653,9 +653,9 @@ void process_superframe(LPCNetEncState *st, unsigned char *buf, FILE *ffeat, int
     main_pitch = std::max(0, std::min(63, main_pitch));
     modulation = (int)floor(.5 + 16 * 7 * best_a / center_pitch);
     modulation = std::max(-3, std::min(3, modulation));
-    // printf("%d %d\n", main_pitch, modulation);
-    // printf("%f %f\n", best_a/center_pitch, best_corr);
-    // for (sub=2;sub<10;sub++) printf("%f %d %f\n", best_b + sub*best_a, best[sub], best_corr);
+    //spdlog::get("console")->info("%d %d\n", main_pitch, modulation);
+    ////spdlog::get("console")->info("%f %f\n", best_a/center_pitch, best_corr);
+    // for (sub=2;sub<10;sub++) //spdlog::get("console")->info("%f %d %f\n", best_b + sub*best_a, best[sub], best_corr);
     for (sub = 0; sub < 4; sub++) {
         if (quantize) {
             float p = pow(2.f, main_pitch / 21.) * PITCH_MIN_PERIOD;
@@ -666,13 +666,13 @@ void process_superframe(LPCNetEncState *st, unsigned char *buf, FILE *ffeat, int
             st->features[sub][2 * NB_BANDS] = .01 * (best[2 + 2 * sub] + best[2 + 2 * sub + 1] - 200);
             st->features[sub][2 * NB_BANDS + 1] = frame_corr - .5;
         }
-        // printf("%f %d %f\n", st->features[sub][2*NB_BANDS], best[2+2*sub], frame_corr);
+        //spdlog::get("console")->info("%f %d %f\n", st->features[sub][2*NB_BANDS], best[2+2*sub], frame_corr);
     }
-    // printf("%d %f %f %f\n", best_period, best_a, best_b, best_corr);
+    ////spdlog::get("console")->info("%d %f %f %f\n", best_period, best_a, best_b, best_corr);
     RNN_COPY(&st->xc[0][0], &st->xc[8][0], PITCH_MAX_PERIOD);
     RNN_COPY(&st->xc[1][0], &st->xc[9][0], PITCH_MAX_PERIOD);
     if (quantize) {
-        // printf("%f\n", st->features[3][0]);
+        //spdlog::get("console")->info("%f\n", st->features[3][0]);
         c0_id = (int)floor(.5 + st->features[3][0] * 4);
         c0_id = std::max(-64, std::min(63, c0_id));
         st->features[3][0] = c0_id / 4.;
@@ -688,7 +688,7 @@ void process_superframe(LPCNetEncState *st, unsigned char *buf, FILE *ffeat, int
         for (i = 0; i < LPC_ORDER; i++)
             st->features[sub][2 * NB_BANDS + 3 + i] = st->lpc[i];
     }
-    // printf("\n");
+    //spdlog::get("console")->info("\n");
     RNN_COPY(st->vq_mem, &st->features[3][0], NB_BANDS);
     if (encode) {
         packer bits;

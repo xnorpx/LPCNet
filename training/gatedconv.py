@@ -43,7 +43,8 @@ class GatedConv(Conv1D):
 
     def call(self, inputs, cond=None, memory=None):
         if memory is None:
-            mem = K.zeros((K.shape(inputs)[0], self.mem_size, K.shape(inputs)[-1]))
+            mem = K.zeros(
+                (K.shape(inputs)[0], self.mem_size, K.shape(inputs)[-1]))
         else:
             mem = K.variable(K.cast_to_floatx(memory))
         inputs = K.concatenate([mem, inputs], axis=1)
@@ -51,7 +52,8 @@ class GatedConv(Conv1D):
         if cond is not None:
             d = Dense(2 * self.out_dims, use_bias=False, activation='linear')
             ret = ret + d(cond)
-        ret = self.nongate_activation(ret[:, :, :self.out_dims]) * activations.sigmoid(ret[:, :, self.out_dims:])
+        ret = self.nongate_activation(
+            ret[:, :, :self.out_dims]) * activations.sigmoid(ret[:, :, self.out_dims:])
         if self.return_memory:
             ret = ret, inputs[:, :self.mem_size, :]
         return ret

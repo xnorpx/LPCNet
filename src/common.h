@@ -3,7 +3,7 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#include <math.h>
+#include <cmath>
 #include <stdlib.h>
 #include <string.h>
 
@@ -33,13 +33,13 @@ static RNN_INLINE float log2_approx(float x) {
 static RNN_INLINE float ulaw2lin(float u) {
     float s;
     float scale_1 = 32768.f / 255.f;
-    u = u - 128;
+    u = u - 128.f;
     s = u >= 0 ? 1 : -1;
     u = fabs(u);
     return s * scale_1 * (exp(u / 128. * LOG256) - 1);
 }
 
-static RNN_INLINE int lin2ulaw(float x) {
+static RNN_INLINE unsigned char lin2ulaw(float x) {
     float u;
     float scale = 255.f / 32768.f;
     int s = x >= 0 ? 1 : -1;
@@ -47,10 +47,10 @@ static RNN_INLINE int lin2ulaw(float x) {
     u = (s * (128 * log_approx(1 + scale * x) / LOG256));
     u = 128 + u;
     if (u < 0)
-        u = 0;
+        u = 0.f;
     if (u > 255)
-        u = 255;
-    return (int)floor(.5 + u);
+        u = 255.f;
+    return static_cast<unsigned char>(std::round(u));
 }
 
 /** RNNoise wrapper for malloc(). To do your own dynamic allocation, all you need t

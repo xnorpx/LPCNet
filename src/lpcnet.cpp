@@ -44,8 +44,8 @@
 static void print_vector(float *x, int N)
 {
     int i;
-    for (i=0;i<N;i++) printf("%f ", x[i]);
-    printf("\n");
+    for (i=0;i<N;i++) //spdlog::get("console")->info("%f ", x[i]);
+    //spdlog::get("console")->info("\n");
 }
 #endif
 

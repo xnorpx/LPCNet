@@ -8,11 +8,33 @@ if(NOT WIN32)
                       windows)
 endif()
 
+set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED 1)
+set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY true)
+set(FETCHCONTENT_QUIET FALSE)
+
+include(FetchContent)
+
+FetchContent_Declare(benchmark
+                        GIT_REPOSITORY https://github.com/google/benchmark.git
+                        GIT_PROGRESS TRUE
+                        USES_TERMINAL_DOWNLOAD
+                        TRUE)
+
+FetchContent_GetProperties(benchmark)
+if(NOT benchmark_POPULATED)
+  FetchContent_Populate(benchmark)
+
+  set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
+  set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+  set(BENCHMARK_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+
+  add_subdirectory(${benchmark_SOURCE_DIR})
+endif()
+
 set(model_url https://media.xiph.org/lpcnet/data/lpcnet_data-681d98c.tar.gz)
 # TODO: no hardcode?
 set(model_source_dir "${CMAKE_CURRENT_BINARY_DIR}/models/")
 
-include(FetchContent)
 fetchcontent_declare(lpcnet_data
                      URL
                      ${model_url}
@@ -39,6 +61,8 @@ add_library(lpcnet_object
             ${model_source_dir}/ceps_codebooks.cpp)
 
 target_include_directories(lpcnet_object PUBLIC include src ${model_source_dir})
+target_link_libraries(lpcnet_object)
+target_compile_definitions(lpcnet_object PRIVATE LPCNET_BUILD DLL_EXPORT)
 
 if(MSVC)
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
@@ -69,3 +93,7 @@ target_link_libraries(ceps_vq_train lpcnet_object)
 
 add_executable(lpcnet_demo src/lpcnet_demo.cpp)
 target_link_libraries(lpcnet_demo lpcnet_object)
+
+add_library(lpcnet SHARED src/dummy.c)
+target_link_libraries(lpcnet lpcnet_object)
+target_compile_definitions(lpcnet PRIVATE LPCNET_BUILD DLL_EXPORT)

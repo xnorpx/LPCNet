@@ -25,13 +25,12 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '''
 
-import lpcnet
-import sys
-import numpy as np
-from ulaw import ulaw2lin, lin2ulaw
-
-import tensorflow as tf
 from keras.backend.tensorflow_backend import set_session
+from ulaw import ulaw2lin, lin2ulaw
+import lpcnet
+import numpy as np
+import sys
+import tensorflow as tf
 
 config = tf.ConfigProto()
 config.gpu_options.per_process_gpu_memory_fraction = 0.2
@@ -39,7 +38,8 @@ set_session(tf.Session(config=config))
 
 model, enc, dec = lpcnet.new_lpcnet_model(use_gpu=False)
 
-model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['sparse_categorical_accuracy'])
+model.compile(optimizer='adam', loss='sparse_categorical_crossentropy',
+              metrics=['sparse_categorical_accuracy'])
 # model.summary()
 
 feature_file = sys.argv[1]
@@ -74,15 +74,18 @@ fout = open(out_file, 'wb')
 
 skip = order + 1
 for c in range(0, nb_frames):
-    cfeat = enc.predict([features[c:c + 1, :, :nb_used_features], periods[c:c + 1, :, :]])
+    cfeat = enc.predict(
+        [features[c:c + 1, :, :nb_used_features], periods[c:c + 1, :, :]])
     for fr in range(0, feature_chunk_size):
         f = c * feature_chunk_size + fr
         a = features[c, fr, nb_features - order:]
         for i in range(skip, frame_size):
-            pred = -sum(a * pcm[f * frame_size + i - 1:f * frame_size + i - order - 1:-1])
+            pred = -sum(a * pcm[f * frame_size + i -
+                                1:f * frame_size + i - order - 1:-1])
             fexc[0, 0, 1] = lin2ulaw(pred)
 
-            p, state1, state2 = dec.predict([fexc, cfeat[:, fr:fr + 1, :], state1, state2])
+            p, state1, state2 = dec.predict(
+                [fexc, cfeat[:, fr:fr + 1, :], state1, state2])
             # Lower the temperature for voiced frames to reduce noisiness
             p *= np.power(p, np.maximum(0, 1.5 * features[c, fr, 37] - .5))
             p = p / (1e-18 + np.sum(p))
