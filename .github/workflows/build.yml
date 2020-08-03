@@ -1,0 +1,27 @@
+name: LPCNet CI
+
+on: [push, pull_request]
+
+jobs:
+  CheckTrailingWhiteSpaces:
+    name: Check trailing white spaces
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Check Whitespaces
+        run: |
+          git diff-tree --check origin/master HEAD
+
+  Build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Autogen
+        run: ./autogen.sh
+      - name: Configure
+        run: ./configure
+      - name: Build
+        run: make -j 2
