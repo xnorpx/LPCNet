@@ -28,12 +28,10 @@
 import lpcnet
 import sys
 import numpy as np
-from keras.optimizers import Adam
-from keras.callbacks import ModelCheckpoint
-from keras.layers import Layer, GRU, CuDNNGRU, Dense, Conv1D, Embedding
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.layers import Layer, GRU, Dense, Conv1D, Embedding
 from ulaw import ulaw2lin, lin2ulaw
 from mdense import MDense
-import keras.backend as K
 import h5py
 import re
 
@@ -136,7 +134,6 @@ def dump_gru_layer(self, f, hf):
     hf.write('#define {}_STATE_SIZE {}\n'.format(name.upper(), weights[0].shape[1]//3))
     hf.write('extern const GRULayer {};\n\n'.format(name));
     return True
-CuDNNGRU.dump_layer = dump_gru_layer
 GRU.dump_layer = dump_gru_layer
 
 def dump_dense_layer_impl(name, weights, bias, activation, f, hf):
@@ -209,7 +206,7 @@ def dump_embedding_layer(self, f, hf):
 Embedding.dump_layer = dump_embedding_layer
 
 
-model, _, _ = lpcnet.new_lpcnet_model(rnn_units1=384, use_gpu=False)
+model, _, _ = lpcnet.new_lpcnet_model(rnn_units1=384)
 model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['sparse_categorical_accuracy'])
 #model.summary()
 

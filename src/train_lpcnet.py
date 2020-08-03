@@ -30,21 +30,19 @@
 import lpcnet
 import sys
 import numpy as np
-from keras.optimizers import Adam
-from keras.callbacks import ModelCheckpoint
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import ModelCheckpoint
 from ulaw import ulaw2lin, lin2ulaw
-import keras.backend as K
+import tensorflow.keras.backend as K
 import h5py
 
 import tensorflow as tf
-from keras.backend.tensorflow_backend import set_session
-config = tf.ConfigProto()
-
-# use this option to reserve GPU memory, e.g. for running more than
-# one thing at a time.  Best to disable for GPUs with small memory
-config.gpu_options.per_process_gpu_memory_fraction = 0.44
-
-set_session(tf.Session(config=config))
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+  try:
+    tf.config.experimental.set_virtual_device_configuration(gpus[0], [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=5120)])
+  except RuntimeError as e:
+    print(e)
 
 nb_epochs = 120
 
@@ -95,6 +93,7 @@ features = np.concatenate([fpad1, features, fpad2], axis=1)
 
 
 periods = (.1 + 50*features[:,:,36:37]+100).astype('int16')
+#periods = np.minimum(periods, 255)
 
 in_data = np.concatenate([sig, pred, in_exc], axis=-1)
 
@@ -103,7 +102,7 @@ del pred
 del in_exc
 
 # dump models to disk as we go
-checkpoint = ModelCheckpoint('lpcnet30_384_10_G16_{epoch:02d}.h5')
+checkpoint = ModelCheckpoint('lpcnet32_384_10_G16_{epoch:02d}.h5')
 
 #Set this to True to adapt an existing model (e.g. on new data)
 adaptation = False
@@ -121,5 +120,5 @@ else:
     decay = 5e-5
 
 model.compile(optimizer=Adam(lr, amsgrad=True, decay=decay), loss='sparse_categorical_crossentropy')
-model.save_weights('lpcnet30_384_10_G16_00.h5');
+model.save_weights('lpcnet32_384_10_G16_00.h5');
 model.fit([in_data, features, periods], out_exc, batch_size=batch_size, epochs=nb_epochs, validation_split=0.0, callbacks=[checkpoint, sparsify])

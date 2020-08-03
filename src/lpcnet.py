@@ -26,11 +26,11 @@
 '''
 
 import math
-from keras.models import Model
-from keras.layers import Input, GRU, CuDNNGRU, Dense, Embedding, Reshape, Concatenate, Lambda, Conv1D, Multiply, Add, Bidirectional, MaxPooling1D, Activation
-from keras import backend as K
-from keras.initializers import Initializer
-from keras.callbacks import Callback
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, GRU, Dense, Embedding, Reshape, Concatenate, Lambda, Conv1D, Multiply, Add, Bidirectional, MaxPooling1D, Activation
+from tensorflow.keras import backend as K
+from tensorflow.keras.initializers import Initializer
+from tensorflow.keras.callbacks import Callback
 from mdense import MDense
 import numpy as np
 import h5py
@@ -73,7 +73,7 @@ class Sparsify(Callback):
                     density = 1 - (1-self.final_density[k])*(1 - r*r*r)
                 A = p[:, k*N:(k+1)*N]
                 A = A - np.diag(np.diag(A))
-                A = np.transpose(A, (1, 0))
+                #A = np.transpose(A, (1, 0))
                 L=np.reshape(A, (N, N//16, 16))
                 S=np.sum(L*L, axis=-1)
                 SS=np.sort(np.reshape(S, (-1,)))
@@ -81,7 +81,7 @@ class Sparsify(Callback):
                 mask = (S>=thresh).astype('float32');
                 mask = np.repeat(mask, 16, axis=1)
                 mask = np.minimum(1, mask + np.diag(np.ones((N,))))
-                mask = np.transpose(mask, (1, 0))
+                #mask = np.transpose(mask, (1, 0))
                 p[:, k*N:(k+1)*N] = p[:, k*N:(k+1)*N]*mask
                 #print(thresh, np.mean(mask))
             w[1] = p
@@ -113,7 +113,7 @@ class PCMInit(Initializer):
             'seed': self.seed
         }
 
-def new_lpcnet_model(rnn_units1=384, rnn_units2=16, nb_used_features = 38, training=False, use_gpu=True, adaptation=False):
+def new_lpcnet_model(rnn_units1=384, rnn_units2=16, nb_used_features = 38, training=False, adaptation=False):
     pcm = Input(shape=(None, 3))
     feat = Input(shape=(None, nb_used_features))
     pitch = Input(shape=(None, 1))
@@ -140,12 +140,8 @@ def new_lpcnet_model(rnn_units1=384, rnn_units2=16, nb_used_features = 38, train
     
     rep = Lambda(lambda x: K.repeat_elements(x, frame_size, 1))
 
-    if use_gpu:
-        rnn = CuDNNGRU(rnn_units1, return_sequences=True, return_state=True, name='gru_a')
-        rnn2 = CuDNNGRU(rnn_units2, return_sequences=True, return_state=True, name='gru_b')
-    else:
-        rnn = GRU(rnn_units1, return_sequences=True, return_state=True, recurrent_activation="sigmoid", reset_after='true', name='gru_a')
-        rnn2 = GRU(rnn_units2, return_sequences=True, return_state=True, recurrent_activation="sigmoid", reset_after='true', name='gru_b')
+    rnn = GRU(rnn_units1, return_sequences=True, return_state=True, recurrent_activation="sigmoid", reset_after='true', name='gru_a')
+    rnn2 = GRU(rnn_units2, return_sequences=True, return_state=True, recurrent_activation="sigmoid", reset_after='true', name='gru_b')
 
     rnn_in = Concatenate()([cpcm, rep(cfeat)])
     md = MDense(pcm_levels, activation='softmax', name='dual_fc')

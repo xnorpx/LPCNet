@@ -1,6 +1,7 @@
-from keras import backend as K
-from keras.engine.topology import Layer
-from keras.layers import activations, initializers, regularizers, constraints, InputSpec
+from tensorflow.keras import backend as K
+from tensorflow.keras.layers import Layer, InputSpec
+from tensorflow.keras import activations
+from tensorflow.keras import initializers, regularizers, constraints
 import numpy as np
 import math
 
