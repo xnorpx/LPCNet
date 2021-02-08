@@ -1,9 +1,18 @@
+#ifdef ENABLE_VALGRIND
+  #include <valgrind/memcheck.h>
+#else
+  #define VALGRIND_CHECK_MEM_IS_DEFINED
+#endif
 
-#include <valgrind/memcheck.h>
+#ifdef _MSC_VER
+#define _USE_MATH_DEFINES
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+
+#include "stack_alloc.h"
 
 #define MIN(a,b) ((a)<(b)?(a):(b))
 #define COEF 0.0f
@@ -115,8 +124,27 @@ int quantize_lsp(const float *x, const float *codebook1, const float *codebook2,
 		 const float *codebook3, int nb_entries, float *xq, int ndim)
 {
   int i, n1, n2, n3;
-  float err[ndim], err2[ndim], err3[ndim];
-  float w[ndim], w2[ndim], w3[ndim];
+  //float err[ndim], err2[ndim], err3[ndim];
+  VARDECL(float, err);
+  SAVE_STACK;
+  ALLOC(err, ndim, float);
+  VARDECL(float, err2);
+  SAVE_STACK;
+  ALLOC(err, ndim, float);
+  VARDECL(float, err3);
+  SAVE_STACK;
+  ALLOC(err, ndim, float);
+
+  //float w[ndim], w2[ndim], w3[ndim];
+  VARDECL(float, w);
+  SAVE_STACK;
+  ALLOC(w, ndim, float);
+  VARDECL(float, w2);
+  SAVE_STACK;
+  ALLOC(w2, ndim, float);
+  VARDECL(float, w3);
+  SAVE_STACK;
+  ALLOC(w3, ndim, float);
   
   w[0] = MIN(x[0], x[1]-x[0]);
   for (i=1;i<ndim-1;i++)
@@ -175,9 +203,21 @@ void split(float *codebook, int nb_entries, int ndim)
 void split1(float *codebook, int nb_entries, const float *data, int nb_vectors, int ndim)
 {
   int i,j;
-  int nearest[nb_vectors];
-  float dist[nb_entries];
-  int count[nb_entries];
+  //int nearest[nb_vectors];
+  VARDECL(int, nearest);
+  SAVE_STACK;
+  ALLOC(nearest, nb_vectors, int);
+
+  //float dist[nb_entries];
+  VARDECL(float, dist);
+  SAVE_STACK;
+  ALLOC(dist, nb_entries, float);
+
+  //int count[nb_entries];
+  VARDECL(int, count);
+  SAVE_STACK;
+  ALLOC(count, nb_vectors, int);
+
   int worst;
   for (i=0;i<nb_entries;i++)
     dist[i] = 0;
@@ -204,6 +244,7 @@ void split1(float *codebook, int nb_entries, const float *data, int nb_vectors, 
     codebook[worst*ndim+j] += delta;
     codebook[nb_entries*ndim+j] = codebook[worst*ndim+j] - delta;
   }
+  RESTORE_STACK;
 }
 
 
@@ -211,8 +252,15 @@ void split1(float *codebook, int nb_entries, const float *data, int nb_vectors, 
 void update(float *data, int nb_vectors, float *codebook, int nb_entries, int ndim)
 {
   int i,j;
-  int count[nb_entries];
-  int nearest[nb_vectors];
+  //int count[nb_entries];
+  VARDECL(int, count);
+  SAVE_STACK;
+  ALLOC(count, nb_entries, int);
+
+  //int nearest[nb_vectors];
+  VARDECL(int, nearest);
+  SAVE_STACK;
+  ALLOC(nearest, nb_vectors, int);
   double err=0;
 
   for (i=0;i<nb_entries;i++)
@@ -253,9 +301,16 @@ void update(float *data, int nb_vectors, float *codebook, int nb_entries, int nd
 void update_multi(float *data, int nb_vectors, float *codebook, int nb_entries, int ndim, int sign)
 {
   int i,j;
-  int count[nb_entries];
   int idcount[8]={0};
-  int nearest[nb_vectors];
+  //int count[nb_entries];
+  VARDECL(int, count);
+  SAVE_STACK;
+  ALLOC(count, nb_entries, int);
+
+  //int nearest[nb_vectors];
+  VARDECL(int, nearest);
+  SAVE_STACK;
+  ALLOC(nearest, nb_vectors, int);
   double err=0;
 
   for (i=0;i<nb_entries;i++)
@@ -294,14 +349,20 @@ void update_multi(float *data, int nb_vectors, float *codebook, int nb_entries, 
   }
   fprintf(stderr, "%d %d %d %d %d %d %d %d ", idcount[0], idcount[1], idcount[2], idcount[3], idcount[4], idcount[5], idcount[6], idcount[7]);
   fprintf(stderr, "| %f / %d, min = %d, small=%d\n", 1./w2, nb_entries, min_count, small);
+  RESTORE_STACK;
 }
 
 
 void update_weighted(float *data, float *weight, int nb_vectors, float *codebook, int nb_entries, int ndim)
 {
   int i,j;
-  float count[MAX_ENTRIES][ndim];
-  int nearest[nb_vectors];
+  //float count[MAX_ENTRIES][ndim];
+  float count[MAX_ENTRIES][MAX_ENTRIES];
+
+  //int nearest[nb_vectors];
+  VARDECL(int, nearest);
+  SAVE_STACK;
+  ALLOC(nearest, nb_vectors, int);
   
   for (i=0;i<nb_entries;i++)
     for (j=0;j<ndim;j++)
