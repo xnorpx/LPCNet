@@ -8,7 +8,8 @@ if(NOT WIN32)
                       windows)
 endif()
 
-set(MODEL_COMMIT 90ea887)
+#set(MODEL_COMMIT 90ea887)
+set(MODEL_COMMIT b58f477)
 set(MODEL_URL https://media.xiph.org/lpcnet/data/lpcnet_data-${MODEL_COMMIT}.tar.gz)
 set(MODEL_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/models/src")
 
