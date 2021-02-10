@@ -37,7 +37,7 @@
 
 #ifdef __AVX__
 #include "vec_avx.h"
-#elif defined(__ARM_NEON__) || defined(__ARM_NEON)
+#elif defined(__ARM_NEON__) || defined(__ARM_NEON) || (defined(NEON2SSE))
 #include "vec_neon.h"
 #else
 

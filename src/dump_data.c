@@ -28,10 +28,12 @@
 #include "config.h"
 #endif
 
+#ifndef _MSC_VER
+#include <unistd.h>
+#endif
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <unistd.h>
 #include "kiss_fft.h"
 #include "common.h"
 #include <math.h>

@@ -28,9 +28,32 @@
 */
 /* NEON support for ARM machines */
 
+#ifndef NEON2SSE
 #include <arm_neon.h>
+#else
+#ifdef _MSC_VER
+#define restrict
+#endif
+#include "NEON_2_SSE.h"
+static inline int16x8_t vpaddq_s16(int16x8_t a, int16x8_t b) {
+  const int16x4_t c = vpadd_s16(vget_low_s16(a), vget_high_s16(a));
+  const int16x4_t d = vpadd_s16(vget_low_s16(b), vget_high_s16(b));
+  return vcombine_s16(c, d);
+}
 
-#define DOT_PROD
+static inline int16x8_t vmovl_high_s8(int8x16_t a) {
+    return vmovl_s8(vget_high_s8(a));
+}
+
+static inline int16x8_t vmull_high_s8(int16x8_t a, int16x8_t b) {
+    return vmulq_s16(
+        vmovl_high_s8(a), 
+        vmovl_high_s8(b));
+}
+
+#endif
+
+//#define DOT_PROD
 typedef signed char qweight;
 
 
@@ -240,7 +263,8 @@ static inline void sgemv_accum8x4(float *_out, const qweight *w, int rows, int c
       for (j=0;j<cols;j+=4)
       {
          int8x16_t vw0, vw1, vx;
-         vx = (int8x16_t)vld1q_dup_s32((int*)&x[j]);
+         //vx = (int8x16_t)vld1q_dup_s32((int*)&x[j]);
+         //vx = (int8x16_t)vld1q_dup_s16((int*)&x[j]);
          vw0 = vld1q_s8(w);
          vw1 = vld1q_s8(&w[16]);
          acc0 = vdotprod(acc0, vw0, vx);
@@ -272,7 +296,8 @@ static inline void sparse_sgemv_accum8x4(float *_out, const qweight *w, int rows
          int pos;
          pos = 4 * (*idx++);
          int8x16_t vw0, vw1, vx;
-         vx = (int8x16_t)vld1q_dup_s32((int*)&x[pos]);
+         //vx = (int8x16_t)vld1q_dup_s32((int*)&x[pos]);
+         vx = vld1q_dup_s32((int*)&x[pos]);
          vw0 = vld1q_s8(w);
          vw1 = vld1q_s8(&w[16]);
          acc0 = vdotprod(acc0, vw0, vx);

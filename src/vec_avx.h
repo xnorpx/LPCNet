@@ -37,6 +37,10 @@
 #define DOT_PROD
 #define USE_SU_BIAS
 
+#ifdef _MSC_VER
+#define restrict
+#endif
+
 #ifdef __AVX2__
 static inline __m256 exp8_approx(__m256 X)
 {

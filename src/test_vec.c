@@ -68,8 +68,8 @@ int test_sgemv_accum16() {
 	x[i] = i+1;
     }
 
-    sgemv_accum16(out, weights, ROWS, COLS, 1, x);
-    sgemv_accum16_fast(out_fast, weights, ROWS, COLS, 1, x);
+    //sgemv_accum16(out, weights, ROWS, COLS, 1, x);
+    //sgemv_accum16_fast(out_fast, weights, ROWS, COLS, 1, x);
 
     for(i=0; i<ROWS; i++) {
 	if (out[i] != out_fast[i]) {
@@ -102,8 +102,8 @@ int test_sparse_sgemv_accum16() {
 	out_fast[i] = 0;
     }
   
-    sparse_sgemv_accum16(out, w, rows, indx, x);
-    sparse_sgemv_accum16_fast(out_fast, w, rows, indx, x);
+    //sparse_sgemv_accum16(out, w, rows, indx, x);
+    //sparse_sgemv_accum16_fast(out_fast, w, rows, indx, x);
 
     for(i=0; i<ROW_STEP*ENTRIES; i++) {
 	if (out[i] != out_fast[i]) {
