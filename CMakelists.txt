@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.11)
-project(LPCNet LANGUAGES C)
+project(LPCNet LANGUAGES C CXX)
 
 if(NOT WIN32)
   message(FATAL_ERROR Only
@@ -20,9 +20,23 @@ fetchcontent_declare(lpcnet_data
                      SOURCE_DIR
                      "${CMAKE_CURRENT_BINARY_DIR}/models")
 
-fetchcontent_getproperties(lpcnet_data)
+FetchContent_Declare(benchmark
+                     GIT_REPOSITORY https://github.com/google/benchmark.git
+                     GIT_PROGRESS TRUE
+                     USES_TERMINAL_DOWNLOAD
+                     TRUE)
+
+FetchContent_GetProperties(lpcnet_data benchmark)
 if(NOT lpcnet_data_POPULATED)
   fetchcontent_populate(lpcnet_data)
+endif()
+
+if(NOT benchmark_POPULATED)
+  FetchContent_Populate(benchmark)
+  set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
+  set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+  set(BENCHMARK_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+  add_subdirectory(${benchmark_SOURCE_DIR} EXCLUDE_FROM_ALL)
 endif()
 
 add_library(lpcnet_object
@@ -77,3 +91,10 @@ target_link_libraries(ceps_vq_train lpcnet_object)
 
 add_executable(lpcnet_demo src/lpcnet_demo.c)
 target_link_libraries(lpcnet_demo lpcnet_object)
+
+add_executable(lpcnet_benchmark 
+               src/test_data_1_channel_16_khz_pcm.h
+               src/test_data_1_channel_16_khz_pcm.cpp
+               src/lpcnet_benchmark.cpp)
+target_link_libraries(lpcnet_benchmark PRIVATE benchmark lpcnet_object)
+add_test(lpcnet_benchmark lpcnet_benchmark)
