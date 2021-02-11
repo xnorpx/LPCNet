@@ -57,7 +57,7 @@ static inline int16x8_t vmull_high_s8(int16x8_t a, int16x8_t b) {
 typedef signed char qweight;
 
 
-#ifndef LPCNET_TEST
+//#ifndef LPCNET_TEST
 static inline OPUS_INLINE float32x4_t exp4_approx(float32x4_t x) {
   int32x4_t i;
   float32x4_t xf;
@@ -150,7 +150,7 @@ static inline void vec_sigmoid(float *y, const float *x, int N)
         y[i] = (ex)/(ex+1);
     }
 }
-#endif
+//#endif
 
 static inline void sgemv_accum16(float *out, const float *weights, int rows, int cols, int col_stride, const float *x)
 {
@@ -263,8 +263,8 @@ static inline void sgemv_accum8x4(float *_out, const qweight *w, int rows, int c
       for (j=0;j<cols;j+=4)
       {
          int8x16_t vw0, vw1, vx;
-         //vx = (int8x16_t)vld1q_dup_s32((int*)&x[j]);
-         //vx = (int8x16_t)vld1q_dup_s16((int*)&x[j]);
+         vx = vld1q_dup_s32((int*)&x[j]);
+         vx = vld1q_dup_s16((int*)&x[j]);
          vw0 = vld1q_s8(w);
          vw1 = vld1q_s8(&w[16]);
          acc0 = vdotprod(acc0, vw0, vx);
@@ -296,7 +296,6 @@ static inline void sparse_sgemv_accum8x4(float *_out, const qweight *w, int rows
          int pos;
          pos = 4 * (*idx++);
          int8x16_t vw0, vw1, vx;
-         //vx = (int8x16_t)vld1q_dup_s32((int*)&x[pos]);
          vx = vld1q_dup_s32((int*)&x[pos]);
          vw0 = vld1q_s8(w);
          vw1 = vld1q_s8(&w[16]);
