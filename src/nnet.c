@@ -38,6 +38,7 @@
 #include "tansig_table.h"
 #include "nnet.h"
 #include "nnet_data.h"
+#include "lpcnet.h"
 
 #ifdef NO_OPTIMIZATIONS
 //#warning Compiling without any vectorization. This code will be very slow
@@ -46,6 +47,7 @@
 
 #define SOFTMAX_HACK
 
+extern g_arch;
 
 static OPUS_INLINE float relu(float x)
 {
@@ -58,7 +60,16 @@ static void sgemv_accum(float *out, const float *weights, int rows, int cols, in
    int i, j;
    if (rows % 16 == 0)
    {
-      sgemv_accum16(out, weights, rows, cols, col_stride, x);
+       if (g_arch == 2) {
+         sgemv_accum16_avx(out, weights, rows, cols, col_stride, x);
+       }
+       else if (g_arch == 1) {
+         sgemv_accum16_neon(out, weights, rows, cols, col_stride, x);
+       } 
+       else {
+         sgemv_accum16_c(out, weights, rows, cols, col_stride, x);
+       }
+
    } else {
       for (i=0;i<rows;i++)
       {
@@ -72,9 +83,22 @@ void compute_activation(float *output, float *input, int N, int activation)
 {
    int i;
    if (activation == ACTIVATION_SIGMOID) {
-      vec_sigmoid(output, input, N);
+       if (g_arch == 2) {
+         vec_sigmoid_avx(output, input, N);
+       } else if (g_arch == 1) {
+         vec_sigmoid_neon(output, input, N);
+       } else {
+         vec_sigmoid_c(output, input, N);
+       }
    } else if (activation == ACTIVATION_TANH) {
-      vec_tanh(output, input, N);
+       if (g_arch == 2) {
+         vec_tanh_avx(output, input, N);
+       } else if (g_arch == 1) {
+         vec_tanh_neon(output, input, N);
+       } else {
+         vec_tanh_c(output, input, N);
+       }
+
    } else if (activation == ACTIVATION_RELU) {
       for (i=0;i<N;i++)
          output[i] = relu(input[i]);
@@ -84,7 +108,13 @@ void compute_activation(float *output, float *input, int N, int activation)
          output[i] = input[i];
 #else
       float sum = 0;
-      softmax(output, input, N);
+       if (g_arch == 2) {
+         softmax_avx(output, input, N);
+       } else if (g_arch == 1) {
+         softmax_neon(output, input, N);
+       } else {
+         softmax_c(output, input, N);
+       }
       for (i=0;i<N;i++) {
          sum += output[i];
       }
@@ -108,8 +138,9 @@ void compute_dense(const DenseLayer *layer, float *output, const float *input)
    N = layer->nb_neurons;
    stride = N;
    celt_assert(input != output);
-   for (i=0;i<N;i++)
+   for (i = 0; i < N; i++) {
       output[i] = layer->bias[i];
+   }
    sgemv_accum(output, layer->input_weights, N, M, stride, input);
    compute_activation(output, output, N, layer->activation);
 }
@@ -231,7 +262,14 @@ void compute_gru2(const GRULayer *gru, float *state, const float *input)
    for (i=0;i<3*N;i++)
       zrh[i] = gru->bias[i];
 #endif
-   sgemv_accum8x4(zrh, gru->input_weights, 3*N, M, stride, input);
+   if (g_arch == 2) {
+    sgemv_accum8x4_avx(zrh, gru->input_weights, 3*N, M, stride, input);
+   } else if (g_arch == 1) {
+    sgemv_accum8x4_neon(zrh, gru->input_weights, 3*N, M, stride, input);
+   } else {
+    sgemv_accum8x4_c(zrh, gru->input_weights, 3*N, M, stride, input);
+   }
+
    for (i=0;i<3*N;i++)
       recur[i] = gru->bias[3*N + i];
    sgemv_accum(recur, gru->recurrent_weights, 3*N, N, stride, state);
@@ -310,7 +348,14 @@ void compute_sparse_gru(const SparseGRULayer *gru, float *state, const float *in
       for (i=0;i<N;i++)
          recur[k*N + i] += gru->diag_weights[k*N + i]*state[i];
    }
-   sparse_sgemv_accum8x4(recur, gru->recurrent_weights, 3*N, N, gru->idx, state);
+
+   if (g_arch == 2) {
+    sparse_sgemv_accum8x4_avx(recur, gru->recurrent_weights, 3*N, N, gru->idx, state);
+   } else if (g_arch == 1) {
+    sparse_sgemv_accum8x4_neon(recur, gru->recurrent_weights, 3*N, N, gru->idx, state);
+   } else {
+    sparse_sgemv_accum8x4_c(recur, gru->recurrent_weights, 3*N, N, gru->idx, state);
+   }
    for (i=0;i<2*N;i++)
       zrh[i] += recur[i];
    compute_activation(zrh, zrh, 2*N, ACTIVATION_SIGMOID);
@@ -380,7 +425,15 @@ int sample_from_pdf(const float *pdf, int N, float exp_boost, float pdf_floor)
     {
         tmp[i] = pdf[i] * (1.f+exp_boost);
     }
-    softmax(tmp, tmp, N);
+
+    if (g_arch == 2) {
+	  softmax_avx(tmp, tmp, N);
+    } else if (g_arch == 1) {
+	  softmax_neon(tmp, tmp, N);
+    } else {
+	  softmax_c(tmp, tmp, N);
+    }
+
     for (i=0;i<N;i++)
     {
         sum += tmp[i];

@@ -144,7 +144,9 @@ int main(int argc, char **argv) {
   int encode = 0;
   int decode = 0;
   int quantize = 0;
-  srand(getpid());
+#ifndef _MSC_VER
+  rand(getpid());
+#endif
   st = lpcnet_encoder_create();
   if (argc == 5 && strcmp(argv[1], "-train")==0) training = 1;
   if (argc == 5 && strcmp(argv[1], "-qtrain")==0) {

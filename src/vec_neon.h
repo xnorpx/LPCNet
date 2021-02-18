@@ -28,12 +28,15 @@
 */
 /* NEON support for ARM machines */
 
+
+#ifndef VEC_NEON_H
+#define VEC_NEON_H
+
+#include "lpcnet_defines.h"
+
 #ifndef NEON2SSE
 #include <arm_neon.h>
 #else
-#ifdef _MSC_VER
-#define restrict
-#endif
 #include "NEON_2_SSE.h"
 static inline int16x8_t vpaddq_s16(int16x8_t a, int16x8_t b) {
   const int16x4_t c = vpadd_s16(vget_low_s16(a), vget_high_s16(a));
@@ -58,7 +61,7 @@ typedef signed char qweight;
 
 
 //#ifndef LPCNET_TEST
-static inline OPUS_INLINE float32x4_t exp4_approx(float32x4_t x) {
+static inline float32x4_t exp4_approx_neon(float32x4_t x) {
   int32x4_t i;
   float32x4_t xf;
 
@@ -85,31 +88,31 @@ static inline OPUS_INLINE float32x4_t exp4_approx(float32x4_t x) {
   return Y;
 }
 
-static inline float celt_exp(float x)
+static inline float celt_exp_neon(float x)
 {
    float out[4];
    float32x4_t X, Y;
    X = vdupq_n_f32(x);
-   Y = exp4_approx(X);
+   Y = exp4_approx_neon(X);
    vst1q_f32(out, Y);
    return out[0];
 }
 
-static inline void softmax(float *y, const float *x, int N)
+static inline void softmax_neon(float *y, const float *x, int N)
 {
     int i;
     for (i=0;i<N-3;i+=4)
     {
         float32x4_t X, Y;
         X = vld1q_f32(&x[i]);
-        Y = exp4_approx(X);
+        Y = exp4_approx_neon(X);
         vst1q_f32(&y[i], Y);
     }
     for (;i<N;i++)
-        y[i] = celt_exp(x[i]);
+        y[i] = celt_exp_neon(x[i]);
 }
 
-static inline void vec_tanh(float *y, const float *x, int N)
+static inline void vec_tanh_neon(float *y, const float *x, int N)
 {
     int i;
     for (i=0;i<N-3;i+=4)
@@ -119,19 +122,19 @@ static inline void vec_tanh(float *y, const float *x, int N)
         float32x4_t X, Y;
         X = vld1q_f32(&x[i]);
         X = vmulq_f32(X, two);
-        Y = exp4_approx(X);
+        Y = exp4_approx_neon(X);
         Y = vmulq_f32(vsubq_f32(Y, one),  vrecpeq_f32(vaddq_f32(Y, one)));
         vst1q_f32(&y[i], Y);
     }
     for (;i<N;i++)
     {
         float ex2;
-        ex2 = celt_exp(2*x[i]);
+        ex2 = celt_exp_neon(2*x[i]);
         y[i] = (ex2-1)/(ex2+1);
     }
 }
 
-static inline void vec_sigmoid(float *y, const float *x, int N)
+static inline void vec_sigmoid_neon(float *y, const float *x, int N)
 {
     int i;
     for (i=0;i<N-3;i+=4)
@@ -139,25 +142,26 @@ static inline void vec_sigmoid(float *y, const float *x, int N)
         const float32x4_t one = vdupq_n_f32(1.f);
         float32x4_t X, Y;
         X = vld1q_f32(&x[i]);
-        Y = exp4_approx(X);
+        Y = exp4_approx_neon(X);
         Y = vmulq_f32(Y,  vrecpeq_f32(vaddq_f32(Y, one)));
         vst1q_f32(&y[i], Y);
     }
     for (;i<N;i++)
     {
         float ex;
-        ex = celt_exp(x[i]);
+        ex = celt_exp_neon(x[i]);
         y[i] = (ex)/(ex+1);
     }
 }
 //#endif
 
-static inline void sgemv_accum16(float *out, const float *weights, int rows, int cols, int col_stride, const float *x)
+static inline void sgemv_accum16_neon(float *out, const float *weights, int rows, int cols, int col_stride, const float *x)
 {
     int i, j;
     for (i=0;i<rows;i+=16)
     {
-	float * restrict y = &out[i];
+	//float * restrict y = &out[i];
+	float *  y = &out[i];
       
 	/* keep y[0..15] in registers for duration of inner loop */
       
@@ -168,7 +172,8 @@ static inline void sgemv_accum16(float *out, const float *weights, int rows, int
       
 	for (j=0;j<cols;j++)
 	{
-	    const float * restrict w;
+	    //const float * restrict w;
+	    const float * w;
 	    float32x4_t wvec0_3, wvec4_7, wvec8_11, wvec12_15;
 	    float32x4_t xj;
 
@@ -196,14 +201,15 @@ static inline void sgemv_accum16(float *out, const float *weights, int rows, int
     }
 }
 
-static inline void sparse_sgemv_accum16(float *out, const float *w, int rows, const int *idx, const float *x)
+static inline void sparse_sgemv_accum16_neon(float *out, const float *w, int rows, const int *idx, const float *x)
 {
     int i, j;
     for (i=0;i<rows;i+=16)
     {
 	int cols;
 	cols = *idx++;
-	float * restrict y;
+	//float * restrict y;
+	float * y;
 	y = &out[i];
 
 	/* keep y[0..15] in registers for duration of inner loop */
@@ -236,25 +242,21 @@ static inline void sparse_sgemv_accum16(float *out, const float *w, int rows, co
     }
 }
 
-#define SCALE (128.f*127.f)
-#define SCALE_1 (1.f/128.f/127.f)
-
-#define MAX_INPUTS 2048
-#define MAX_OUTPUTS 8192
-
 static inline int32x4_t vdotprod(int32x4_t acc, int8x16_t a, int8x16_t b)
 {
   return vpadalq_s16(acc, vpaddq_s16(vmull_s8(vget_low_s8(a), vget_low_s8(b)),  vmull_high_s8(a, b)));
 }
 
-static inline void sgemv_accum8x4(float *_out, const qweight *w, int rows, int cols, int col_stride, const float *_x)
+static inline void sgemv_accum8x4_neon(float *_out, const qweight *w, int rows, int cols, int col_stride, const float *_x)
 {
    int i, j;
    signed char x[MAX_INPUTS];
    int out[MAX_OUTPUTS];
    (void)col_stride;
-   for (i=0;i<rows;i++) out[i] = (int)floor(.5+SCALE*_out[i]);
-   for (i=0;i<cols;i++) x[i] = (int)floor(.5+127*_x[i]);
+   //for (i=0;i<rows;i++) out[i] = (int)floor(.5+SCALE*_out[i]);
+   for (i=0;i<rows;i++) out[i] = (int).5+SCALE*_out[i];
+   //for (i=0;i<cols;i++) x[i] = (int)floor(.5+127*_x[i]);
+   for (i=0;i<cols;i++) x[i] = (int).5+127*_x[i];
    for (i=0;i<rows;i+=8)
    {
       int32x4_t acc0, acc1;
@@ -277,13 +279,15 @@ static inline void sgemv_accum8x4(float *_out, const qweight *w, int rows, int c
    for (i=0;i<rows;i++) _out[i] = SCALE_1*out[i];
 }
 
-static inline void sparse_sgemv_accum8x4(float *_out, const qweight *w, int rows, int cols, const int *idx, const float *_x)
+static inline void sparse_sgemv_accum8x4_neon(float *_out, const qweight *w, int rows, int cols, const int *idx, const float *_x)
 {
    int i, j;
    signed char x[MAX_INPUTS];
    int out[MAX_OUTPUTS];
-   for (i=0;i<rows;i++) out[i] = (int)floor(.5+SCALE*_out[i]);
-   for (i=0;i<cols;i++) x[i] = floor(.5+127*_x[i]);
+   //for (i=0;i<rows;i++) out[i] = (int)floor(.5+SCALE*_out[i]);
+   for (i=0;i<rows;i++) out[i] = (int).5+SCALE*_out[i];
+   //for (i=0;i<cols;i++) x[i] = floor(.5+127*_x[i]);
+   for (i=0;i<cols;i++) x[i] = .5+127*_x[i];
    for (i=0;i<rows;i+=8)
    {
       int colblocks;
@@ -308,3 +312,4 @@ static inline void sparse_sgemv_accum8x4(float *_out, const qweight *w, int rows
    }
    for (i=0;i<rows;i++) _out[i] = SCALE_1*out[i];
 }
+#endif

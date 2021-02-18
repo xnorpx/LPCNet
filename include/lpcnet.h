@@ -41,6 +41,12 @@
 # endif
 #endif
 
+#define ARCH_C 0
+#define ARCH_NEON 1
+#define ARCH_SSE4 ARCH_NEON
+#define ARCH_AVX = 2
+
+extern int g_arch;
 
 #define NB_FEATURES 38
 #define NB_TOTAL_FEATURES 55

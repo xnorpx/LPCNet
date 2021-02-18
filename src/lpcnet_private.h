@@ -31,11 +31,13 @@ struct LPCNetState {
     float old_gain[FEATURES_DELAY];
     int frame_count;
     float deemph_mem;
+    enum Arch arch; 
 };
 
 struct LPCNetDecState {
     LPCNetState lpcnet_state;
     float vq_mem[NB_BANDS];
+    enum Arch arch; 
 };
 
 struct LPCNetEncState{
